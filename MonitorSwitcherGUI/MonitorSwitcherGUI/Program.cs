@@ -40,8 +40,8 @@ namespace MonitorSwitcherGUI
 
         private NotifyIcon trayIcon;
         private ContextMenuStrip trayMenu;
-        private String settingsDirectory;
-        private String settingsDirectoryProfiles;
+        private string settingsDirectory;
+        private string settingsDirectoryProfiles;
         private List<Hotkey> Hotkeys;
         //private GlobalKeyboardHook KeyHook; 
 
@@ -99,9 +99,9 @@ namespace MonitorSwitcherGUI
             trayIcon.MouseUp += OnTrayClick;
         }
 
-        public static String GetSettingsDirectory(string customSettingsDirectory)
+        public static string GetSettingsDirectory(string customSettingsDirectory)
         {
-            String dir = "";
+            string dir = "";
             if (string.IsNullOrEmpty(customSettingsDirectory))
             {
                 dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MonitorSwitcher");
@@ -113,7 +113,7 @@ namespace MonitorSwitcherGUI
             return dir;
         }
 
-        public static String GetSettingsProfielDirectotry(string settingsDirectory)
+        public static string GetSettingsProfielDirectotry(string settingsDirectory)
         {
             return Path.Combine(settingsDirectory, "Profiles");
         }
@@ -242,7 +242,7 @@ namespace MonitorSwitcherGUI
             return null;
         }
 
-        public Hotkey FindHotkey(String name)
+        public Hotkey FindHotkey(string name)
         {
             foreach (Hotkey hotkey in Hotkeys)
             {
@@ -406,7 +406,7 @@ namespace MonitorSwitcherGUI
         {
             string profileName = (((ToolStripMenuItem)sender).Tag as string);
             Hotkey hotkey = FindHotkey(profileName);
-            Boolean isNewHotkey = false;
+            bool isNewHotkey = false;
             if (hotkey == null)
                 isNewHotkey = true;
             if (HotkeySetting("Set Hotkey for Monitor Profile '" + profileName + "'", "Enter name of new profile", ref hotkey) == DialogResult.OK)
@@ -645,12 +645,12 @@ namespace MonitorSwitcherGUI
     [StructLayout(LayoutKind.Sequential)]
     public class Hotkey
     {
-        public Boolean Ctrl;
-        public Boolean Alt;
-        public Boolean Shift;
-        public Boolean RemoveKey; 
+        public bool Ctrl;
+        public bool Alt;
+        public bool Shift;
+        public bool RemoveKey; 
         public Keys Key;
-        public String profileName;
+        public string profileName;
 
         public HotkeyCtrl hotkeyCtrl;
 

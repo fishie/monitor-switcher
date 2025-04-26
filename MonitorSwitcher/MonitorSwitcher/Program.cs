@@ -12,10 +12,10 @@ namespace MonitorSwitcherGUI
 {
     public class MonitorSwitcher
     {
-        private static Boolean debug;
-        private static Boolean noIDMatch;
+        private static bool debug;
+        private static bool noIDMatch;
 
-        public static void DebugOutput(String text)
+        public static void DebugOutput(string text)
         {
             if (debug)
             {
@@ -23,7 +23,7 @@ namespace MonitorSwitcherGUI
             }
         }
 
-        public static Boolean LoadDisplaySettings(String fileName)
+        public static bool LoadDisplaySettings(string fileName)
         {
             DebugOutput("Loading display settings from file: " + fileName);
             if (!File.Exists(fileName))
@@ -122,7 +122,7 @@ namespace MonitorSwitcherGUI
             CCDWrapper.DisplayConfigModeInfo[] modeInfoArrayCurrent = new CCDWrapper.DisplayConfigModeInfo[0];
             CCDWrapper.MonitorAdditionalInfo[] additionalInfoCurrent = new CCDWrapper.MonitorAdditionalInfo[0];
 
-            Boolean statusCurrent = GetDisplaySettings(ref pathInfoArrayCurrent, ref modeInfoArrayCurrent, ref additionalInfoCurrent, false);
+            bool statusCurrent = GetDisplaySettings(ref pathInfoArrayCurrent, ref modeInfoArrayCurrent, ref additionalInfoCurrent, false);
             if (statusCurrent)
             {
                 if (!noIDMatch)
@@ -387,7 +387,7 @@ namespace MonitorSwitcherGUI
             return false;
         }
 
-        public static Boolean GetDisplaySettings(ref CCDWrapper.DisplayConfigPathInfo[] pathInfoArray, ref CCDWrapper.DisplayConfigModeInfo[] modeInfoArray, ref CCDWrapper.MonitorAdditionalInfo[] additionalInfo, Boolean ActiveOnly)
+        public static bool GetDisplaySettings(ref CCDWrapper.DisplayConfigPathInfo[] pathInfoArray, ref CCDWrapper.DisplayConfigModeInfo[] modeInfoArray, ref CCDWrapper.MonitorAdditionalInfo[] additionalInfo, bool ActiveOnly)
         {
             uint numPathArrayElements;
             uint numModeInfoArrayElements;
@@ -493,10 +493,10 @@ namespace MonitorSwitcherGUI
             return false;
         }
 
-        public static String PrintDisplaySettings(CCDWrapper.DisplayConfigPathInfo[] pathInfoArray, CCDWrapper.DisplayConfigModeInfo[] modeInfoArray)
+        public static string PrintDisplaySettings(CCDWrapper.DisplayConfigPathInfo[] pathInfoArray, CCDWrapper.DisplayConfigModeInfo[] modeInfoArray)
         {
             // initialize result
-            String output = "";
+            string output = "";
 
             // initialize text writer
             StringWriter textWriter = new StringWriter();
@@ -542,14 +542,14 @@ namespace MonitorSwitcherGUI
             return output;
         }
 
-        public static Boolean SaveDisplaySettings(String fileName)
+        public static bool SaveDisplaySettings(string fileName)
         {
             CCDWrapper.DisplayConfigPathInfo[] pathInfoArray = new CCDWrapper.DisplayConfigPathInfo[0];
             CCDWrapper.DisplayConfigModeInfo[] modeInfoArray = new CCDWrapper.DisplayConfigModeInfo[0];
             CCDWrapper.MonitorAdditionalInfo[] additionalInfo = new CCDWrapper.MonitorAdditionalInfo[0];
 
             DebugOutput("Getting display config");
-            Boolean status = GetDisplaySettings(ref pathInfoArray, ref modeInfoArray, ref additionalInfo, true);
+            bool status = GetDisplaySettings(ref pathInfoArray, ref modeInfoArray, ref additionalInfo, true);
             if (status) 
             {
                 if (debug)
@@ -622,7 +622,7 @@ namespace MonitorSwitcherGUI
             debug = false;
             noIDMatch = false;
 
-            Boolean validCommand = false;
+            bool validCommand = false;
             foreach (string iArg in args)
             {
                 string[] argElements = iArg.Split(new char[] { ':' }, 2);
@@ -650,7 +650,7 @@ namespace MonitorSwitcherGUI
                         CCDWrapper.DisplayConfigModeInfo[] modeInfoArray = new CCDWrapper.DisplayConfigModeInfo[0];
                         CCDWrapper.MonitorAdditionalInfo[] additionalInfo = new CCDWrapper.MonitorAdditionalInfo[0];
 
-                        Boolean status = GetDisplaySettings(ref pathInfoArray, ref modeInfoArray, ref additionalInfo, true);
+                        bool status = GetDisplaySettings(ref pathInfoArray, ref modeInfoArray, ref additionalInfo, true);
                         if (status)
                         {
                             Console.WriteLine(PrintDisplaySettings(pathInfoArray, modeInfoArray));

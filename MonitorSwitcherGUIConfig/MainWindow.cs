@@ -23,7 +23,7 @@ namespace MonitorSwitcherGUI
 
         private void UpdateProfileList()
         {
-            String settingsDirectory = MonitorSwitcherGUI.GetSettingsDirectory(null);
+            string settingsDirectory = MonitorSwitcherGUI.GetSettingsDirectory(null);
             string settingsDirectoryProfiles = MonitorSwitcherGUI.GetSettingsProfielDirectotry(settingsDirectory);
 
             // get profiles

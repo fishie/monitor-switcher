@@ -205,7 +205,7 @@ namespace MonitorSwitcherGUI
             public uint cy;
         }
 
-        public enum D3DkmdtVideoSignalStandard : UInt32
+        public enum D3DkmdtVideoSignalStandard : uint
         {
             Uninitialized = 0,
             VesaDmt = 1,
@@ -470,11 +470,11 @@ namespace MonitorSwitcherGUI
             //public string monitorFriendlyDevice { get; set; }
             public ushort manufactureId { get; set; }
             public ushort productCodeId { get; set; }
-            public Boolean valid { get; set; }
+            public bool valid { get; set; }
 
 
             [XmlElement(ElementName = "monitorDevicePath")]
-            public String monitorDevicePath64
+            public string monitorDevicePath64
             {
                 get
                 {
@@ -498,10 +498,10 @@ namespace MonitorSwitcherGUI
             }
 
             [XmlIgnore]
-            public String monitorDevicePath;
+            public string monitorDevicePath;
 
             [XmlElement(ElementName = "monitorFriendlyDevice")]
-            public String monitorFriendlyDevice64
+            public string monitorFriendlyDevice64
             {
                 get
                 {
@@ -525,7 +525,7 @@ namespace MonitorSwitcherGUI
             }
 
             [XmlIgnore]
-            public String monitorFriendlyDevice;
+            public string monitorFriendlyDevice;
         }
 
         public static MonitorAdditionalInfo GetMonitorAdditionalInfo(LUID adapterId, uint targetId)
