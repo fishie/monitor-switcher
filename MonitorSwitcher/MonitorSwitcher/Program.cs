@@ -669,7 +669,7 @@ namespace MonitorSwitcherGUI
 
             if (!validCommand)
             {
-                Console.WriteLine("Monitor Profile Switcher command line utlility (version 0.8.0.0):\n");
+                Console.WriteLine("Monitor Profile Switcher command line utlility (version 0.9.0.0):\n");
                 Console.WriteLine("Paremeters to MonitorSwitcher.exe:");
                 Console.WriteLine("\t -save:{xmlfile} \t save the current monitor configuration to file (full path)");
                 Console.WriteLine("\t -load:{xmlfile} \t load and apply monitor configuration from file (full path)");

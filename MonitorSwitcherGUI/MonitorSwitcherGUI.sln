@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorSwitcherGUI", "MonitorSwitcherGUI\MonitorSwitcherGUI.csproj", "{85C2ED16-CB28-4374-B747-A4984EF96CE4}"
 EndProject
@@ -20,6 +20,7 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{85C2ED16-CB28-4374-B747-A4984EF96CE4}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{85C2ED16-CB28-4374-B747-A4984EF96CE4}.Debug|Any CPU.Build.0 = Debug|x86
 		{85C2ED16-CB28-4374-B747-A4984EF96CE4}.Debug|x64.ActiveCfg = Debug|x86
 		{85C2ED16-CB28-4374-B747-A4984EF96CE4}.Debug|x86.ActiveCfg = Debug|x86
 		{85C2ED16-CB28-4374-B747-A4984EF96CE4}.Debug|x86.Build.0 = Debug|x86
@@ -28,6 +29,7 @@ Global
 		{85C2ED16-CB28-4374-B747-A4984EF96CE4}.Release|x86.ActiveCfg = Release|x86
 		{85C2ED16-CB28-4374-B747-A4984EF96CE4}.Release|x86.Build.0 = Release|x86
 		{531C5395-5EEC-4629-A285-B40105AAF593}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{531C5395-5EEC-4629-A285-B40105AAF593}.Debug|Any CPU.Build.0 = Debug|x86
 		{531C5395-5EEC-4629-A285-B40105AAF593}.Debug|x64.ActiveCfg = Debug|x86
 		{531C5395-5EEC-4629-A285-B40105AAF593}.Debug|x86.ActiveCfg = Debug|x86
 		{531C5395-5EEC-4629-A285-B40105AAF593}.Debug|x86.Build.0 = Debug|x86
