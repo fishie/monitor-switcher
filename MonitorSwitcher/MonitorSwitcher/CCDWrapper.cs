@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using System.Text;
 
 namespace MonitorSwitcherGUI
 {
@@ -483,7 +484,7 @@ namespace MonitorSwitcherGUI
                     {
                         outValue = "";
                     }
-                    return Convert.ToBase64String(System.Text.Encoding.UTF32.GetBytes(outValue));
+                    return Convert.ToBase64String(Encoding.UTF32.GetBytes(outValue));
                 }
                 set
                 {
@@ -493,7 +494,7 @@ namespace MonitorSwitcherGUI
                         return;
                     }
 
-                    monitorDevicePath = System.Text.Encoding.UTF32.GetString(Convert.FromBase64String(value));
+                    monitorDevicePath = Encoding.UTF32.GetString(Convert.FromBase64String(value));
                 }
             }
 
@@ -510,7 +511,7 @@ namespace MonitorSwitcherGUI
                     {
                         outValue = "";
                     }
-                    return Convert.ToBase64String(System.Text.Encoding.UTF32.GetBytes(outValue));
+                    return Convert.ToBase64String(Encoding.UTF32.GetBytes(outValue));
                 }
                 set
                 {
@@ -520,7 +521,7 @@ namespace MonitorSwitcherGUI
                         return;
                     }
 
-                    monitorFriendlyDevice = System.Text.Encoding.UTF32.GetString(Convert.FromBase64String(value));
+                    monitorFriendlyDevice = Encoding.UTF32.GetString(Convert.FromBase64String(value));
                 }
             }
 
@@ -552,29 +553,6 @@ namespace MonitorSwitcherGUI
             result.monitorFriendlyDevice = deviceName.monitorFriendlyDeviceName;
 
             return result;
-        }
-
-        /// <summary>
-        /// The idea of this method is to make sure we have type-safety, without any stupid overloads.
-        /// Without this, you would need to marshal yourself everything when using DisplayConfigGetDeviceInfo,
-        /// or SetDeviceInfo, without any type-safety. 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="displayConfig"></param>
-        /// <param name="func"></param>
-        /// <returns></returns>
-        private static StatusCode MarshalStructureAndCall<T>(ref T displayConfig,
-            Func<IntPtr, StatusCode> func) where T : IDisplayConfigInfo
-        {
-            var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(displayConfig));
-            Marshal.StructureToPtr(displayConfig, ptr, false);
-
-            var returnValue = func(ptr);
-
-            displayConfig = (T)Marshal.PtrToStructure(ptr, displayConfig.GetType());
-
-            Marshal.FreeHGlobal(ptr);
-            return returnValue;
         }
     }
 }

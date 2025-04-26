@@ -11,6 +11,9 @@ using System.IO;
 using System.Xml;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using System.Xml.Serialization;
+using System.Threading;
+using System.Diagnostics;
 
 namespace MonitorSwitcherGUI
 {
@@ -38,11 +41,11 @@ namespace MonitorSwitcherGUI
             Application.Run(new MonitorSwitcherGUI(customSettingsDirectory));
         }
 
-        private NotifyIcon trayIcon;
-        private ContextMenuStrip trayMenu;
-        private string settingsDirectory;
-        private string settingsDirectoryProfiles;
-        private List<Hotkey> Hotkeys;
+        private readonly NotifyIcon trayIcon;
+        private readonly ContextMenuStrip trayMenu;
+        private readonly string settingsDirectory;
+        private readonly string settingsDirectoryProfiles;
+        private readonly List<Hotkey> Hotkeys;
         //private GlobalKeyboardHook KeyHook; 
 
         public MonitorSwitcherGUI(string CustomSettingsDirectory)
@@ -101,16 +104,14 @@ namespace MonitorSwitcherGUI
 
         public static string GetSettingsDirectory(string customSettingsDirectory)
         {
-            string dir = "";
             if (string.IsNullOrEmpty(customSettingsDirectory))
             {
-                dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MonitorSwitcher");
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MonitorSwitcher");
             }
             else
             {
-                dir = customSettingsDirectory;
+                return customSettingsDirectory;
             }
-            return dir;
         }
 
         public static string GetSettingsProfielDirectotry(string settingsDirectory)
@@ -173,7 +174,7 @@ namespace MonitorSwitcherGUI
             if (!File.Exists(SettingsFileFromName("Hotkeys")))
                 return;
 
-            System.Xml.Serialization.XmlSerializer readerHotkey = new System.Xml.Serialization.XmlSerializer(typeof(Hotkey));           
+            XmlSerializer readerHotkey = new XmlSerializer(typeof(Hotkey));           
 
             try
             {
@@ -197,15 +198,18 @@ namespace MonitorSwitcherGUI
             }
             catch
             {
+                // TODO: why do we ignore all exceptions?
             }
         }
 
         public void SaveSettings()
         {
-            System.Xml.Serialization.XmlSerializer writerHotkey = new System.Xml.Serialization.XmlSerializer(typeof(Hotkey));
+            XmlSerializer writerHotkey = new XmlSerializer(typeof(Hotkey));
 
-            XmlWriterSettings xmlSettings = new XmlWriterSettings();
-            xmlSettings.CloseOutput = true;
+            XmlWriterSettings xmlSettings = new XmlWriterSettings
+            {
+                CloseOutput = true
+            };
 
             try
             {
@@ -364,7 +368,7 @@ namespace MonitorSwitcherGUI
 
         public void OnEnergySaving(object sender, EventArgs e)
         {
-            System.Threading.Thread.Sleep(500); // wait for 500 milliseconds to give the user the chance to leave the mouse alone
+            Thread.Sleep(500); // wait for 500 milliseconds to give the user the chance to leave the mouse alone
             SendMessageAPI.PostMessage(new IntPtr(SendMessageAPI.HWND_BROADCAST), SendMessageAPI.WM_SYSCOMMAND, new IntPtr(SendMessageAPI.SC_MONITORPOWER), new IntPtr(SendMessageAPI.MONITOR_OFF));
         }
 
@@ -375,7 +379,7 @@ namespace MonitorSwitcherGUI
 
         public void OnMenuDonate(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y329BPYNKDTLC");
+            Process.Start("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y329BPYNKDTLC");
         }
 
         public void OnMenuSaveAs(object sender, EventArgs e)
@@ -404,7 +408,7 @@ namespace MonitorSwitcherGUI
 
         public void OnHotkeySet(object sender, EventArgs e)
         {
-            string profileName = (((ToolStripMenuItem)sender).Tag as string);
+            string profileName = ((ToolStripMenuItem)sender).Tag as string;
             Hotkey hotkey = FindHotkey(profileName);
             bool isNewHotkey = false;
             if (hotkey == null)
@@ -470,8 +474,8 @@ namespace MonitorSwitcherGUI
 
             if (e.Button == MouseButtons.Left)
             {
-                System.Reflection.MethodInfo mi = typeof(NotifyIcon).GetMethod("ShowContextMenu", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-                mi.Invoke(trayIcon, null);
+                MethodInfo methodInfo = typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
+                methodInfo.Invoke(trayIcon, null);
             }
         }
 
