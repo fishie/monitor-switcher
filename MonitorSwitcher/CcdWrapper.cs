@@ -478,7 +478,7 @@ public class CcdWrapper
         {
             get
             {
-                string outValue = monitorDevicePath;
+                string? outValue = monitorDevicePath;
                 if (outValue == null)
                 {
                     outValue = "";
@@ -498,14 +498,14 @@ public class CcdWrapper
         }
 
         [XmlIgnore]
-        public string monitorDevicePath;
+        public string? monitorDevicePath;
 
         [XmlElement(ElementName = "monitorFriendlyDevice")]
         public string monitorFriendlyDevice64
         {
             get
             {
-                string outValue = monitorFriendlyDevice;
+                string? outValue = monitorFriendlyDevice;
                 if (outValue == null)
                 {
                     outValue = "";
@@ -525,12 +525,12 @@ public class CcdWrapper
         }
 
         [XmlIgnore]
-        public string monitorFriendlyDevice;
+        public string? monitorFriendlyDevice;
     }
 
     public static MonitorAdditionalInfo GetMonitorAdditionalInfo(LUID adapterId, uint targetId)
     {
-        MonitorAdditionalInfo result = new MonitorAdditionalInfo();
+        var result = new MonitorAdditionalInfo();
         var deviceName = new DisplayConfigTargetDeviceName
         {
             header =

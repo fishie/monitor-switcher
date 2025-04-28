@@ -41,7 +41,6 @@ public class MonitorSwitcherGUI : Form
     private readonly string settingsDirectory;
     private readonly string settingsDirectoryProfiles;
     private readonly List<Hotkey> Hotkeys;
-    //private GlobalKeyboardHook KeyHook; 
 
     public MonitorSwitcherGUI(string CustomSettingsDirectory)
     {
@@ -59,11 +58,6 @@ public class MonitorSwitcherGUI : Form
 
         // Load all settings
         LoadSettings();
-
-        // Inizialize globa keyboard hook or hotkeys
-        //KeyHook = new GlobalKeyboardHook();
-        //KeyHook.KeyDown += new KeyEventHandler(KeyHook_KeyDown);
-        //KeyHook.KeyUp += new KeyEventHandler(KeyHook_KeyUp);
 
         // Refresh Hotkey Hooks
         KeyHooksRefresh();
@@ -86,7 +80,7 @@ public class MonitorSwitcherGUI : Form
         trayMenu.ImageList.Images.Add(Image.FromStream(myStream));
 
         // finally build tray menu
-        BuildTrayMenu();            
+        BuildTrayMenu();
 
         // Create tray icon
         trayIcon = new NotifyIcon();
@@ -99,7 +93,7 @@ public class MonitorSwitcherGUI : Form
 
     private void KeyHooksRefresh()
     {
-        List<Hotkey> removeList = new List<Hotkey>();
+        var removeList = new List<Hotkey>();
         // check which hooks are still valid
         foreach (Hotkey hotkey in Hotkeys)
         {
@@ -113,7 +107,7 @@ public class MonitorSwitcherGUI : Form
         {
             foreach (Hotkey hotkey in removeList)
             {
-                Hotkeys.Remove(hotkey);                    
+                Hotkeys.Remove(hotkey);
             }
             removeList.Clear();
             SaveSettings();
@@ -124,12 +118,12 @@ public class MonitorSwitcherGUI : Form
         {
             hotkey.UnregisterHotkey();
             hotkey.RegisterHotkey(this);
-        }           
+        }
     }
 
     public void KeyHook_KeyUp(object sender, HandledEventArgs e)
     {
-        HotkeyCtrl hotkeyCtrl = sender as HotkeyCtrl;   
+        HotkeyCtrl hotkeyCtrl = sender as HotkeyCtrl;
         Hotkey hotkey = FindHotkey(hotkeyCtrl);
         LoadProfile(hotkey.profileName);
         e.Handled = true;

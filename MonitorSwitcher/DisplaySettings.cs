@@ -18,9 +18,6 @@ public static class DisplaySettings
 
     public static bool GetDisplaySettings(ref CcdWrapper.DisplayConfigPathInfo[] pathInfoArray, ref CcdWrapper.DisplayConfigModeInfo[] modeInfoArray, ref CcdWrapper.MonitorAdditionalInfo[] additionalInfo, bool ActiveOnly)
     {
-        uint numPathArrayElements;
-        uint numModeInfoArrayElements;
-
         // query active paths from the current computer.
         DebugOutput("Getting display settings");
         CcdWrapper.QueryDisplayFlags queryFlags = CcdWrapper.QueryDisplayFlags.AllPaths;
@@ -30,7 +27,7 @@ public static class DisplaySettings
         }
 
         DebugOutput("Getting buffer size");
-        var status = CcdWrapper.GetDisplayConfigBufferSizes(queryFlags, out numPathArrayElements, out numModeInfoArrayElements);
+        var status = CcdWrapper.GetDisplayConfigBufferSizes(queryFlags, out uint numPathArrayElements, out uint numModeInfoArrayElements);
         if (status == 0)
         {
             pathInfoArray = new CcdWrapper.DisplayConfigPathInfo[numPathArrayElements];
@@ -38,9 +35,8 @@ public static class DisplaySettings
             additionalInfo = new CcdWrapper.MonitorAdditionalInfo[numModeInfoArrayElements];
 
             DebugOutput("Querying display config");
-            status = CcdWrapper.QueryDisplayConfig(queryFlags,
-                                                   ref numPathArrayElements, pathInfoArray, ref numModeInfoArrayElements,
-                                                   modeInfoArray, IntPtr.Zero);
+            status = CcdWrapper.QueryDisplayConfig(queryFlags, ref numPathArrayElements, pathInfoArray,
+                ref numModeInfoArrayElements, modeInfoArray, IntPtr.Zero);
 
             if (status == 0)
             {
@@ -55,11 +51,11 @@ public static class DisplaySettings
                 }
                 if (validCount > 0)
                 {   // only cleanup if there is at least one valid element found
-                    CcdWrapper.DisplayConfigModeInfo[] tempInfoArray = new CcdWrapper.DisplayConfigModeInfo[modeInfoArray.Count()];
+                    var tempInfoArray = new CcdWrapper.DisplayConfigModeInfo[modeInfoArray.Length];
                     modeInfoArray.CopyTo(tempInfoArray, 0);
                     modeInfoArray = new CcdWrapper.DisplayConfigModeInfo[validCount];
                     int index = 0;
-                    foreach (CcdWrapper.DisplayConfigModeInfo modeInfo in tempInfoArray)
+                    foreach (var modeInfo in tempInfoArray)
                     {
                         if (modeInfo.infoType != CcdWrapper.DisplayConfigModeInfoType.Zero)
                         {
@@ -80,11 +76,11 @@ public static class DisplaySettings
                 }
                 if (validCount > 0)
                 {   // only cleanup if there is at least one valid element found
-                    CcdWrapper.DisplayConfigPathInfo[] tempInfoArray = new CcdWrapper.DisplayConfigPathInfo[pathInfoArray.Count()];
+                    var tempInfoArray = new CcdWrapper.DisplayConfigPathInfo[pathInfoArray.Length];
                     pathInfoArray.CopyTo(tempInfoArray, 0);
                     pathInfoArray = new CcdWrapper.DisplayConfigPathInfo[validCount];
                     int index = 0;
-                    foreach (CcdWrapper.DisplayConfigPathInfo pathInfo in tempInfoArray)
+                    foreach (var pathInfo in tempInfoArray)
                     {
                         if (pathInfo.targetInfo.targetAvailable)
                         {
@@ -95,7 +91,7 @@ public static class DisplaySettings
                 }
 
                 // get the display names for all modes
-                for (var iMode = 0; iMode < modeInfoArray.Count(); iMode++)
+                for (var iMode = 0; iMode < modeInfoArray.Length; iMode++)
                 {
                     if (modeInfoArray[iMode].infoType == CcdWrapper.DisplayConfigModeInfoType.Target)
                     {
@@ -225,35 +221,35 @@ public static class DisplaySettings
 
         // Loading the xml file
         DebugOutput("Parsing XML file");
-        XmlReader xml = XmlReader.Create(fileName);
-        xml.Read();
+        XmlReader xmlReader = XmlReader.Create(fileName);
+        xmlReader.Read();
         while (true)
         {
-            DebugOutput("\tXML Element: " + xml.Name);
-            if ((xml.Name.CompareTo("DisplayConfigPathInfo") == 0) && (xml.IsStartElement()))
+            DebugOutput("\tXML Element: " + xmlReader.Name);
+            if ((xmlReader.Name.CompareTo("DisplayConfigPathInfo") == 0) && (xmlReader.IsStartElement()))
             {
-                CcdWrapper.DisplayConfigPathInfo pathInfo = (CcdWrapper.DisplayConfigPathInfo)readerPath.Deserialize(xml);
+                var pathInfo = readerPath.Deserialize<CcdWrapper.DisplayConfigPathInfo>(xmlReader);
                 pathInfoList.Add(pathInfo);
                 continue;
             }
-            else if ((xml.Name.CompareTo("modeInfo") == 0) && (xml.IsStartElement()))
+            else if ((xmlReader.Name.CompareTo("modeInfo") == 0) && (xmlReader.IsStartElement()))
             {
                 DebugOutput("\t\tReading modeInfo");
-                CcdWrapper.DisplayConfigModeInfo modeInfo = new CcdWrapper.DisplayConfigModeInfo();
-                xml.Read();
-                xml.Read();
-                modeInfo.id = Convert.ToUInt32(xml.Value);
-                xml.Read();
-                xml.Read();
-                modeInfo.adapterId = (CcdWrapper.LUID)readerModeAdapterID.Deserialize(xml);
-                modeInfo.infoType = (CcdWrapper.DisplayConfigModeInfoType)readerModeInfoType.Deserialize(xml);
+                var modeInfo = new CcdWrapper.DisplayConfigModeInfo();
+                xmlReader.Read();
+                xmlReader.Read();
+                modeInfo.id = Convert.ToUInt32(xmlReader.Value);
+                xmlReader.Read();
+                xmlReader.Read();
+                modeInfo.adapterId = readerModeAdapterID.Deserialize<CcdWrapper.LUID>(xmlReader);
+                modeInfo.infoType = readerModeInfoType.Deserialize<CcdWrapper.DisplayConfigModeInfoType>(xmlReader);
                 if (modeInfo.infoType == CcdWrapper.DisplayConfigModeInfoType.Target)
                 {
-                    modeInfo.targetMode = (CcdWrapper.DisplayConfigTargetMode)readerModeTarget.Deserialize(xml);
+                    modeInfo.targetMode = readerModeTarget.Deserialize<CcdWrapper.DisplayConfigTargetMode>(xmlReader);
                 }
                 else
                 {
-                    modeInfo.sourceMode = (CcdWrapper.DisplayConfigSourceMode)readerModeSource.Deserialize(xml);
+                    modeInfo.sourceMode = readerModeSource.Deserialize<CcdWrapper.DisplayConfigSourceMode>(xmlReader);
                 }
                 DebugOutput("\t\t\tmodeInfo.id = " + modeInfo.id);
                 DebugOutput("\t\t\tmodeInfo.adapterId (High Part) = " + modeInfo.adapterId.HighPart);
@@ -263,20 +259,20 @@ public static class DisplaySettings
                 modeInfoList.Add(modeInfo);
                 continue;
             }
-            else if ((xml.Name.CompareTo("MonitorAdditionalInfo") == 0) && (xml.IsStartElement()))
+            else if ((xmlReader.Name.CompareTo("MonitorAdditionalInfo") == 0) && (xmlReader.IsStartElement()))
             {
                 DebugOutput("\t\tReading additional informations");
-                CcdWrapper.MonitorAdditionalInfo additionalInfo = (CcdWrapper.MonitorAdditionalInfo)readerAdditionalInfo.Deserialize(xml);
+                var additionalInfo = readerAdditionalInfo.Deserialize<CcdWrapper.MonitorAdditionalInfo>(xmlReader);
                 additionalInfoList.Add(additionalInfo);
                 continue;
             }
 
-            if (!xml.Read())
+            if (!xmlReader.Read())
             {
                 break;
             }
         }
-        xml.Close();
+        xmlReader.Close();
         DebugOutput("Parsing of XML file successful");
 
         // Convert C# lists to simply array
@@ -429,7 +425,7 @@ public static class DisplaySettings
                         {
                             if ((additionalInfoCurrent[iAdditionalInfoCurrent].monitorFriendlyDevice != null) && (additionalInfoList[iModeInfo].monitorFriendlyDevice != null))
                             {
-                                if (additionalInfoCurrent[iAdditionalInfoCurrent].monitorFriendlyDevice.Equals(additionalInfoList[iModeInfo].monitorFriendlyDevice))
+                                if (additionalInfoCurrent[iAdditionalInfoCurrent].monitorFriendlyDevice == additionalInfoList[iModeInfo].monitorFriendlyDevice)
                                 {
                                     CcdWrapper.LUID originalID = modeInfoArray[iModeInfo].adapterId;
                                     // now also find all other matching pathInfo modeInfos with that ID and change it
@@ -566,12 +562,8 @@ public static class DisplaySettings
 
     public static string PrintDisplaySettings(CcdWrapper.DisplayConfigPathInfo[] pathInfoArray, CcdWrapper.DisplayConfigModeInfo[] modeInfoArray)
     {
-        // initialize result
-        string output = "";
-
         // initialize text writer
-        StringWriter textWriter = new StringWriter();
-
+        var stringWriter = new StringWriter();
 
         // initialize xml serializer
         var writerPath = new XmlSerializer(typeof(CcdWrapper.DisplayConfigPathInfo));
@@ -581,36 +573,35 @@ public static class DisplaySettings
         var writerModeAdapterID = new XmlSerializer(typeof(CcdWrapper.LUID));
 
         // write content to string
-        textWriter.WriteLine("<displaySettings>");
-        textWriter.WriteLine("<pathInfoArray>");
+        stringWriter.WriteLine("<displaySettings>");
+        stringWriter.WriteLine("<pathInfoArray>");
         foreach (CcdWrapper.DisplayConfigPathInfo pathInfo in pathInfoArray)
         {
-            writerPath.Serialize(textWriter, pathInfo);
+            writerPath.Serialize(stringWriter, pathInfo);
         }
-        textWriter.WriteLine("</pathInfoArray>");
+        stringWriter.WriteLine("</pathInfoArray>");
 
-        textWriter.WriteLine("<modeInfoArray>");
+        stringWriter.WriteLine("<modeInfoArray>");
         for (int iModeInfo = 0; iModeInfo < modeInfoArray.Length; iModeInfo++)
         {
-            textWriter.WriteLine("<modeInfo>");
+            stringWriter.WriteLine("<modeInfo>");
             CcdWrapper.DisplayConfigModeInfo modeInfo = modeInfoArray[iModeInfo];
-            textWriter.WriteLine("<id>" + modeInfo.id.ToString() + "</id>");
-            writerModeAdapterID.Serialize(textWriter, modeInfo.adapterId);
-            writerModeInfoType.Serialize(textWriter, modeInfo.infoType);
+            stringWriter.WriteLine("<id>" + modeInfo.id.ToString() + "</id>");
+            writerModeAdapterID.Serialize(stringWriter, modeInfo.adapterId);
+            writerModeInfoType.Serialize(stringWriter, modeInfo.infoType);
             if (modeInfo.infoType == CcdWrapper.DisplayConfigModeInfoType.Target)
             {
-                writerModeTarget.Serialize(textWriter, modeInfo.targetMode);
+                writerModeTarget.Serialize(stringWriter, modeInfo.targetMode);
             }
             else
             {
-                writerModeSource.Serialize(textWriter, modeInfo.sourceMode);
+                writerModeSource.Serialize(stringWriter, modeInfo.sourceMode);
             }
-            textWriter.WriteLine("</modeInfo>");
+            stringWriter.WriteLine("</modeInfo>");
         }
-        textWriter.WriteLine("</modeInfoArray>");
+        stringWriter.WriteLine("</modeInfoArray>");
 
-        output = textWriter.ToString();
-        return output;
+        return stringWriter.ToString();
     }
 
     public static string GetSettingsDirectory(string customSettingsDirectory)
