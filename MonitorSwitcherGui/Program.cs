@@ -52,8 +52,8 @@ namespace MonitorSwitcherGui
         public MonitorSwitcherGUI(string CustomSettingsDirectory)
         {
             // Initialize settings directory
-            settingsDirectory = GetSettingsDirectory(CustomSettingsDirectory);
-            settingsDirectoryProfiles = GetSettingsProfielDirectotry(settingsDirectory);
+            settingsDirectory = DisplaySettings.GetSettingsDirectory(CustomSettingsDirectory);
+            settingsDirectoryProfiles = DisplaySettings.GetSettingsProfileDirectory(settingsDirectory);
 
             if (!Directory.Exists(settingsDirectory))
                 Directory.CreateDirectory(settingsDirectory);
@@ -103,22 +103,9 @@ namespace MonitorSwitcherGui
             trayIcon.MouseUp += OnTrayClick;
         }
 
-        public static string GetSettingsDirectory(string customSettingsDirectory)
-        {
-            if (string.IsNullOrEmpty(customSettingsDirectory))
-            {
-                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MonitorSwitcher");
-            }
-            else
-            {
-                return customSettingsDirectory;
-            }
-        }
 
-        public static string GetSettingsProfielDirectotry(string settingsDirectory)
-        {
-            return Path.Combine(settingsDirectory, "Profiles");
-        }
+
+
 
         private void KeyHooksRefresh()
         {

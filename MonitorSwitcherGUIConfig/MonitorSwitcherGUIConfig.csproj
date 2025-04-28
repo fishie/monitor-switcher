@@ -82,13 +82,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MonitorSwitcherGui\MonitorSwitcherGui.csproj">
-      <Project>{85c2ed16-cb28-4374-b747-a4984ef96ce4}</Project>
-      <Name>MonitorSwitcherGUI</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\MonitorSwitcherCli\MonitorSwitcherCli.csproj">
-      <Project>{531c5395-5eec-4629-a285-b40105aaf593}</Project>
-      <Name>MonitorSwitcherCLI</Name>
+    <ProjectReference Include="..\MonitorSwitcher\MonitorSwitcher.csproj">
+      <Project>{A5D1A76A-B67A-4E05-B894-3A87DD60F1EE}</Project>
+      <Name>MonitorSwitcher</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

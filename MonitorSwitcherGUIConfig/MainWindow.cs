@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Forms;
+using MonitorSwitcher;
 
 namespace MonitorSwitcherGUI
 {
@@ -23,8 +24,8 @@ namespace MonitorSwitcherGUI
 
         private void UpdateProfileList()
         {
-            string settingsDirectory = MonitorSwitcherGUI.GetSettingsDirectory(null);
-            string settingsDirectoryProfiles = MonitorSwitcherGUI.GetSettingsProfielDirectotry(settingsDirectory);
+            string settingsDirectory = DisplaySettings.GetSettingsDirectory(null);
+            string settingsDirectoryProfiles = DisplaySettings.GetSettingsProfileDirectory(settingsDirectory);
 
             // get profiles
             string[] profiles = Directory.GetFiles(settingsDirectoryProfiles, "*.xml");

@@ -617,5 +617,21 @@ namespace MonitorSwitcher
             return output;
         }
 
+        public static string GetSettingsDirectory(string customSettingsDirectory)
+        {
+            if (string.IsNullOrEmpty(customSettingsDirectory))
+            {
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MonitorSwitcher");
+            }
+            else
+            {
+                return customSettingsDirectory;
+            }
+        }
+
+        public static string GetSettingsProfileDirectory(string settingsDirectory)
+        {
+            return Path.Combine(settingsDirectory, "Profiles");
+        }
     }
 }
