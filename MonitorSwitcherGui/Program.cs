@@ -77,18 +77,18 @@ namespace MonitorSwitcherGui
             // Build up context menu
             trayMenu = new ContextMenuStrip();
             trayMenu.ImageList = new ImageList();
-            trayMenu.ImageList.Images.Add(new Icon(GetType(), "MainIcon.ico"));
-            trayMenu.ImageList.Images.Add(new Icon(GetType(), "DeleteProfile.ico"));
-            trayMenu.ImageList.Images.Add(new Icon(GetType(), "Exit.ico"));
-            trayMenu.ImageList.Images.Add(new Icon(GetType(), "Profile.ico"));
-            trayMenu.ImageList.Images.Add(new Icon(GetType(), "SaveProfile.ico"));
-            trayMenu.ImageList.Images.Add(new Icon(GetType(), "NewProfile.ico"));
-            trayMenu.ImageList.Images.Add(new Icon(GetType(), "About.ico"));
-            trayMenu.ImageList.Images.Add(new Icon(GetType(), "Hotkey.ico"));
+            trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.MainIcon.ico"));
+            trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.DeleteProfile.ico"));
+            trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.Exit.ico"));
+            trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.Profile.ico"));
+            trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.SaveProfile.ico"));
+            trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.NewProfile.ico"));
+            trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.About.ico"));
+            trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.Hotkey.ico"));
 
             // add paypal png logo
             Assembly myAssembly = Assembly.GetExecutingAssembly();
-            Stream myStream = myAssembly.GetManifestResourceStream("MonitorSwitcherGui.PayPal.png");
+            Stream myStream = myAssembly.GetManifestResourceStream("MonitorSwitcherGui.Icons.PayPal.png");
             trayMenu.ImageList.Images.Add(Image.FromStream(myStream));
 
             // finally build tray menu
@@ -97,7 +97,7 @@ namespace MonitorSwitcherGui
             // Create tray icon
             trayIcon = new NotifyIcon();
             trayIcon.Text = "Monitor Profile Switcher";
-            trayIcon.Icon = new Icon(GetType(), "MainIcon.ico");
+            trayIcon.Icon = new Icon(GetType(), "Icons.MainIcon.ico");
             trayIcon.ContextMenuStrip = trayMenu;
             trayIcon.Visible = true;
             trayIcon.MouseUp += OnTrayClick;

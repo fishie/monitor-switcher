@@ -24,7 +24,7 @@
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>MainIcon.ico</ApplicationIcon>
+    <ApplicationIcon>Icons\MainIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>D68D907E14D37EFE956A0D2EAC5E64D290B6627A</ManifestCertificateThumbprint>
@@ -49,25 +49,25 @@
     <None Include="MonitorSwitcherGUI_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="DeleteProfile.ico" />
+    <EmbeddedResource Include="Icons\DeleteProfile.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Profile.ico" />
+    <EmbeddedResource Include="Icons\Profile.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Exit.ico" />
+    <EmbeddedResource Include="Icons\Exit.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MainIcon.ico" />
+    <EmbeddedResource Include="Icons\MainIcon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SaveProfile.ico" />
+    <EmbeddedResource Include="Icons\SaveProfile.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="NewProfile.ico" />
+    <EmbeddedResource Include="Icons\NewProfile.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="About.ico" />
+    <EmbeddedResource Include="Icons\About.ico" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
@@ -92,13 +92,13 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Hotkey.ico" />
+    <EmbeddedResource Include="Icons\Hotkey.ico" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="PayPal.png" />
+    <EmbeddedResource Include="Icons\PayPal.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
