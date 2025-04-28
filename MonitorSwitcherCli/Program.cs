@@ -15,7 +15,7 @@ static void DebugOutput(string text)
 bool validCommand = false;
 foreach (string iArg in args)
 {
-    string[] argElements = iArg.Split(new char[] { ':' }, 2);
+    string[] argElements = iArg.Split(':', 2);
 
     switch (argElements[0].ToLower())
     {
@@ -36,12 +36,7 @@ foreach (string iArg in args)
             validCommand = true;
             break;
         case "-print":
-            var pathInfoArray = new CcdWrapper.DisplayConfigPathInfo[0];
-            var modeInfoArray = new CcdWrapper.DisplayConfigModeInfo[0];
-            var additionalInfo = new CcdWrapper.MonitorAdditionalInfo[0];
-
-            bool status = DisplaySettings.GetDisplaySettings(ref pathInfoArray, ref modeInfoArray, ref additionalInfo, true);
-            if (status)
+            if (DisplaySettings.GetDisplaySettings(out var pathInfoArray, out var modeInfoArray, out _, true))
             {
                 Console.WriteLine(DisplaySettings.PrintDisplaySettings(pathInfoArray, modeInfoArray));
             }

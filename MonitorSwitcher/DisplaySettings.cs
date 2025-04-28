@@ -1,5 +1,6 @@
 ﻿using System.Xml.Serialization;
 using System.Xml;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MonitorSwitcher;
 
@@ -16,12 +17,16 @@ public static class DisplaySettings
         }
     }
 
-    public static bool GetDisplaySettings(ref CcdWrapper.DisplayConfigPathInfo[] pathInfoArray, ref CcdWrapper.DisplayConfigModeInfo[] modeInfoArray, ref CcdWrapper.MonitorAdditionalInfo[] additionalInfo, bool ActiveOnly)
+    public static bool GetDisplaySettings(
+        [NotNullWhen(true)] out CcdWrapper.DisplayConfigPathInfo[]? pathInfoArray,
+        [NotNullWhen(true)] out CcdWrapper.DisplayConfigModeInfo[]? modeInfoArray,
+        [NotNullWhen(true)] out CcdWrapper.MonitorAdditionalInfo[]? additionalInfo,
+        bool activeOnly)
     {
         // query active paths from the current computer.
         DebugOutput("Getting display settings");
         CcdWrapper.QueryDisplayFlags queryFlags = CcdWrapper.QueryDisplayFlags.AllPaths;
-        if (ActiveOnly)
+        if (activeOnly)
         {
             queryFlags = CcdWrapper.QueryDisplayFlags.OnlyActivePaths;
         }
@@ -117,18 +122,16 @@ public static class DisplaySettings
             DebugOutput("Getting Buffer Size Failed");
         }
 
+        pathInfoArray = null;
+        modeInfoArray = null;
+        additionalInfo = null;
         return false;
     }
 
     public static bool SaveDisplaySettings(string fileName)
     {
-        var pathInfoArray = new CcdWrapper.DisplayConfigPathInfo[0];
-        var modeInfoArray = new CcdWrapper.DisplayConfigModeInfo[0];
-        var additionalInfo = new CcdWrapper.MonitorAdditionalInfo[0];
-
         DebugOutput("Getting display config");
-        bool status = GetDisplaySettings(ref pathInfoArray, ref modeInfoArray, ref additionalInfo, true);
-        if (status)
+        if (GetDisplaySettings(out var pathInfoArray, out var modeInfoArray, out var additionalInfo, true))
         {
             if (debug)
             {
@@ -189,7 +192,7 @@ public static class DisplaySettings
         }
         else
         {
-            Console.WriteLine("Failed to get display settings, ERROR: " + status.ToString());
+            Console.WriteLine("Failed to get display settings");
         }
 
         return false;
@@ -291,12 +294,7 @@ public static class DisplaySettings
 
         // Get current display settings
         DebugOutput("Getting current display settings");
-        var pathInfoArrayCurrent = new CcdWrapper.DisplayConfigPathInfo[0];
-        var modeInfoArrayCurrent = new CcdWrapper.DisplayConfigModeInfo[0];
-        var additionalInfoCurrent = new CcdWrapper.MonitorAdditionalInfo[0];
-
-        bool statusCurrent = GetDisplaySettings(ref pathInfoArrayCurrent, ref modeInfoArrayCurrent, ref additionalInfoCurrent, false);
-        if (statusCurrent)
+        if (GetDisplaySettings(out var pathInfoArrayCurrent, out var modeInfoArrayCurrent, out var additionalInfoCurrent, false))
         {
             if (!noIDMatch)
             {
