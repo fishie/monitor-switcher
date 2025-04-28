@@ -36,9 +36,9 @@ foreach (string iArg in args)
             validCommand = true;
             break;
         case "-print":
-            var pathInfoArray = new CCDWrapper.DisplayConfigPathInfo[0];
-            var modeInfoArray = new CCDWrapper.DisplayConfigModeInfo[0];
-            var additionalInfo = new CCDWrapper.MonitorAdditionalInfo[0];
+            var pathInfoArray = new CcdWrapper.DisplayConfigPathInfo[0];
+            var modeInfoArray = new CcdWrapper.DisplayConfigModeInfo[0];
+            var additionalInfo = new CcdWrapper.MonitorAdditionalInfo[0];
 
             bool status = DisplaySettings.GetDisplaySettings(ref pathInfoArray, ref modeInfoArray, ref additionalInfo, true);
             if (status)

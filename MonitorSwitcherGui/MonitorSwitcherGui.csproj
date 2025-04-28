@@ -1,10 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Icons\MainIcon.ico</ApplicationIcon>
   </PropertyGroup>
+
   <ItemGroup>
     <EmbeddedResource Include="Icons\DeleteProfile.ico" />
     <EmbeddedResource Include="Icons\Profile.ico" />
@@ -16,7 +19,9 @@
     <EmbeddedResource Include="Icons\Hotkey.ico" />
     <EmbeddedResource Include="Icons\PayPal.png" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\MonitorSwitcher\MonitorSwitcher.csproj" />
   </ItemGroup>
+
 </Project>
