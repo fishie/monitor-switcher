@@ -341,7 +341,7 @@ public class MonitorSwitcherGUI : Form
     public void OnEnergySaving(object sender, EventArgs e)
     {
         Thread.Sleep(500); // wait for 500 milliseconds to give the user the chance to leave the mouse alone
-        SendMessageAPI.PostMessage(new IntPtr(SendMessageAPI.HWND_BROADCAST), SendMessageAPI.WM_SYSCOMMAND, new IntPtr(SendMessageAPI.SC_MONITORPOWER), new IntPtr(SendMessageAPI.MONITOR_OFF));
+        SendMessageApi.PostMessage(new IntPtr(SendMessageApi.HWND_BROADCAST), SendMessageApi.WM_SYSCOMMAND, new IntPtr(SendMessageApi.SC_MONITORPOWER), new IntPtr(SendMessageApi.MONITOR_OFF));
     }
 
     public void OnMenuAbout(object sender, EventArgs e)

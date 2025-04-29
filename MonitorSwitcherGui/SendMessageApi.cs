@@ -2,7 +2,7 @@
 
 namespace MonitorSwitcherGui;
 
-public class SendMessageAPI
+public class SendMessageApi
 {
     public const int HWND_BROADCAST = 0xFFFF;
     public const int WM_SYSCOMMAND   = 0x0112;
