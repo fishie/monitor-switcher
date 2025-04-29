@@ -131,7 +131,7 @@ public class CcdWrapper
     [Flags]
     public enum DisplayConfigScaling : uint
     {
-        Zero = 0x0, 
+        Zero = 0x0,
 
         Identity = 1,
         Centered = 2,
@@ -434,13 +434,6 @@ public class CcdWrapper
         public string viewGdiDeviceName;
     }
 
-    /*[DllImport("User32.dll")]
-    private static extern StatusCode DisplayConfigGetDeviceInfo(IntPtr requestPacket);
-    public static StatusCode DisplayConfigGetDeviceInfo<T>(ref T displayConfig) where T : IDisplayConfigInfo
-    {
-        return MarshalStructureAndCall(ref displayConfig, DisplayConfigGetDeviceInfo);
-    }*/
-
     [DllImport("user32.dll")]
     public static extern int DisplayConfigGetDeviceInfo(ref DisplayConfigTargetDeviceName deviceName);
 
@@ -450,7 +443,7 @@ public class CcdWrapper
         {
             header =
             {
-                size = (uint)Marshal.SizeOf(typeof (DisplayConfigTargetDeviceName)),
+                size = (uint)Marshal.SizeOf<DisplayConfigTargetDeviceName>(),
                 adapterId = adapterId,
                 id = targetId,
                 type = DisplayConfigDeviceInfoType.GetTargetName
@@ -535,7 +528,7 @@ public class CcdWrapper
         {
             header =
             {
-                size = (uint)Marshal.SizeOf(typeof (DisplayConfigTargetDeviceName)),
+                size = (uint)Marshal.SizeOf<DisplayConfigTargetDeviceName>(),
                 adapterId = adapterId,
                 id = targetId,
                 type = DisplayConfigDeviceInfoType.GetTargetName

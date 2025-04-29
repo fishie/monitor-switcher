@@ -181,17 +181,13 @@ public class MonitorSwitcherGui : Form
 
     public void SaveSettings()
     {
-        XmlSerializer writerHotkey = new XmlSerializer(typeof(Hotkey));
-
-        XmlWriterSettings xmlSettings = new XmlWriterSettings
-        {
-            CloseOutput = true
-        };
+        var writerHotkey = new XmlSerializer(typeof(Hotkey));
+        var settings = new XmlWriterSettings { CloseOutput = true };
 
         try
         {
             using FileStream fileStream = new FileStream(SettingsFileFromName("Hotkeys"), FileMode.Create);
-            XmlWriter xmlWriter = XmlWriter.Create(fileStream, xmlSettings);
+            XmlWriter xmlWriter = XmlWriter.Create(fileStream, settings);
             xmlWriter.WriteStartDocument();
             xmlWriter.WriteStartElement("hotkeys");
             foreach (Hotkey hotkey in Hotkeys)
@@ -530,7 +526,7 @@ public class MonitorSwitcherGui : Form
         buttonCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
 
         form.ClientSize = new Size(396, 107);
-        form.Controls.AddRange(new Control[] { label, textBox, buttonOk, buttonCancel, buttonClear });
+        form.Controls.AddRange([label, textBox, buttonOk, buttonCancel, buttonClear]);
         form.ClientSize = new Size(Math.Max(300, label.Right + 10), form.ClientSize.Height);
         form.FormBorderStyle = FormBorderStyle.FixedDialog;
         form.StartPosition = FormStartPosition.CenterScreen;
@@ -554,7 +550,7 @@ public class MonitorSwitcherGui : Form
             // check if any additional key was pressed, if not don't acceppt hotkey
             if (hotkey.Key < Keys.D0 || !hotkey.Alt && !hotkey.Ctrl && !hotkey.Shift)
                 textBox.Text = "";
-        }                
+        }
     }
     
     static void textBox_KeyDown(object sender, KeyEventArgs e)
@@ -563,7 +559,7 @@ public class MonitorSwitcherGui : Form
         Hotkey hotkey = textBox.Tag as Hotkey;
         if (hotkey == null)
             hotkey = new Hotkey();
-        hotkey.AssignFromKeyEventArgs(e);            
+        hotkey.AssignFromKeyEventArgs(e);
 
         e.Handled = true;
         e.SuppressKeyPress = true; // don't add user input to text box, just use custom display
@@ -599,7 +595,7 @@ public class MonitorSwitcherGui : Form
         buttonOk.Text = "OK";
         buttonCancel.Text = "Cancel";
         buttonOk.DialogResult = DialogResult.OK;
-        buttonCancel.DialogResult = DialogResult.Cancel;            
+        buttonCancel.DialogResult = DialogResult.Cancel;
 
         label.SetBounds(9, 10, 372, 13);
         textBox.SetBounds(12, 36, 372, 20);
@@ -633,7 +629,7 @@ public class Hotkey
     public bool Ctrl;
     public bool Alt;
     public bool Shift;
-    public bool RemoveKey; 
+    public bool RemoveKey;
     public Keys Key;
     public string profileName;
 
@@ -680,7 +676,7 @@ public class Hotkey
     }
 
     public override string ToString()
-    {            
+    {
         List<string> keys = new List<string>();
 
         if (Ctrl == true)
