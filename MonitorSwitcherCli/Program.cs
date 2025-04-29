@@ -51,17 +51,20 @@ foreach (string iArg in args)
 
 if (!validCommand)
 {
-    Console.WriteLine("Monitor Profile Switcher command line utlility (version 0.9.0.0):\n");
-    Console.WriteLine("Paremeters to MonitorSwitcher.exe:");
-    Console.WriteLine("\t -save:{xmlfile} \t save the current monitor configuration to file (full path)");
-    Console.WriteLine("\t -load:{xmlfile} \t load and apply monitor configuration from file (full path)");
-    Console.WriteLine("\t -debug \t\t enable debug output (parameter must come before -load or -save)");
-    Console.WriteLine("\t -noidmatch \t\t disable matching of adapter IDs");
-    Console.WriteLine("\t -print \t\t print current monitor configuration to console");
-    Console.WriteLine("");
-    Console.WriteLine("Examples:");
-    Console.WriteLine("\tMonitorSwitcher.exe -save:MyProfile.xml");
-    Console.WriteLine("\tMonitorSwitcher.exe -load:MyProfile.xml");
-    Console.WriteLine("\tMonitorSwitcher.exe -debug -load:MyProfile.xml");
+    Console.WriteLine("""
+        Monitor Profile Switcher command line utlility (version 0.9.0.0):
+        
+        Parameters to MonitorSwitcher.exe:
+            -save:{xmlfile}    save the current monitor configuration to file (full path)
+            -load:{xmlfile}    load and apply monitor configuration from file (full path)
+            -debug             enable debug output (parameter must come before -load or -save)
+            -noidmatch         disable matching of adapter IDs
+            -print             print current monitor configuration to console
+    
+        Examples:
+            MonitorSwitcher.exe -save:MyProfile.xml
+            MonitorSwitcher.exe -load:MyProfile.xml
+            MonitorSwitcher.exe -debug -load:MyProfile.xml
+        """);
     Console.ReadKey();
 }
