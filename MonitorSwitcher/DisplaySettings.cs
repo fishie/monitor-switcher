@@ -22,7 +22,8 @@ public static class DisplaySettings
         }
 
         Log.Debug("Getting buffer size");
-        var status = CcdWrapper.GetDisplayConfigBufferSizes(queryFlags, out uint numPathArrayElements, out uint numModeInfoArrayElements);
+        var status = CcdWrapper.GetDisplayConfigBufferSizes(queryFlags,
+            out var numPathArrayElements, out var numModeInfoArrayElements);
         if (status == 0)
         {
             pathInfoArray = new CcdWrapper.DisplayConfigPathInfo[numPathArrayElements];
@@ -35,9 +36,9 @@ public static class DisplaySettings
 
             if (status == 0)
             {
-                // cleanup of modeInfo bad elements 
+                // cleanup of modeInfo bad elements
                 int validCount = 0;
-                foreach (CcdWrapper.DisplayConfigModeInfo modeInfo in modeInfoArray)
+                foreach (var modeInfo in modeInfoArray)
                 {
                     if (modeInfo.infoType != CcdWrapper.DisplayConfigModeInfoType.Zero)
                     {   // count number of valid mode Infos
@@ -61,14 +62,8 @@ public static class DisplaySettings
                 }
 
                 // cleanup of currently not available pathInfo elements
-                validCount = 0;
-                foreach (CcdWrapper.DisplayConfigPathInfo pathInfo in pathInfoArray)
-                {
-                    if (pathInfo.targetInfo.targetAvailable)
-                    {
-                        validCount++;
-                    }
-                }
+                validCount = pathInfoArray.Count(pathInfo => pathInfo.targetInfo.targetAvailable);
+
                 if (validCount > 0)
                 {   // only cleanup if there is at least one valid element found
                     var tempInfoArray = new CcdWrapper.DisplayConfigPathInfo[pathInfoArray.Length];
@@ -86,18 +81,19 @@ public static class DisplaySettings
                 }
 
                 // get the display names for all modes
-                for (var iMode = 0; iMode < modeInfoArray.Length; iMode++)
+                for (var i = 0; i < modeInfoArray.Length; i++)
                 {
-                    if (modeInfoArray[iMode].infoType == CcdWrapper.DisplayConfigModeInfoType.Target)
+                    if (modeInfoArray[i].infoType != CcdWrapper.DisplayConfigModeInfoType.Target)
                     {
-                        try
-                        {
-                            additionalInfo[iMode] = CcdWrapper.GetMonitorAdditionalInfo(modeInfoArray[iMode].adapterId, modeInfoArray[iMode].id);
-                        }
-                        catch
-                        {
-                            additionalInfo[iMode].valid = false;
-                        }
+                        continue;
+                    }
+                    try
+                    {
+                        additionalInfo[i] = CcdWrapper.GetMonitorAdditionalInfo(modeInfoArray[i].adapterId, modeInfoArray[i].id);
+                    }
+                    catch
+                    {
+                        additionalInfo[i].valid = false;
                     }
                 }
                 return true;
@@ -365,7 +361,7 @@ public static class DisplaySettings
             // debug output complete display settings
             Log.Debug("\nDisplay settings to be loaded: ");
             Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
-            
+
             uint numPathArrayElements = (uint)pathInfoArray.Length;
             uint numModeInfoArrayElements = (uint)modeInfoArray.Length;
 
@@ -505,7 +501,7 @@ public static class DisplaySettings
 
                     // Set loaded display settings
                     Log.Debug("Setting up final display settings to load");
-                    
+
                     // debug output complete display settings
                     Log.Debug("\nDisplay settings to be loaded: ");
                     Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
