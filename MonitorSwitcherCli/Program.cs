@@ -10,9 +10,11 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 bool validCommand = false;
-foreach (string iArg in args)
+bool matchAdapterIds = true;
+
+foreach (string arg in args)
 {
-    string[] argElements = iArg.Split(':', 2);
+    string[] argElements = arg.Split(':', 2);
 
     switch (argElements[0].ToLower())
     {
@@ -21,7 +23,7 @@ foreach (string iArg in args)
             Log.Debug("Debug output enabled");
             break;
         case "-noidmatch":
-            DisplaySettings.noIDMatch = true;
+            matchAdapterIds = false;
             Log.Debug("Disabled matching of adapter IDs");
             break;
         case "-save":
@@ -29,7 +31,7 @@ foreach (string iArg in args)
             validCommand = true;
             break;
         case "-load":
-            DisplaySettings.LoadDisplaySettings(argElements[1]);
+            DisplaySettings.LoadDisplaySettings(argElements[1], matchAdapterIds);
             validCommand = true;
             break;
         case "-print":

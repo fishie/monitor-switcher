@@ -7,8 +7,6 @@ namespace MonitorSwitcher;
 
 public static class DisplaySettings
 {
-    public static bool noIDMatch;
-
     public static bool GetDisplaySettings(
         [NotNullWhen(true)] out CcdWrapper.DisplayConfigPathInfo[]? pathInfoArray,
         [NotNullWhen(true)] out CcdWrapper.DisplayConfigModeInfo[]? modeInfoArray,
@@ -187,7 +185,7 @@ public static class DisplaySettings
         return false;
     }
 
-    public static bool LoadDisplaySettings(string filename)
+    public static bool LoadDisplaySettings(string filename, bool matchAdapterIds = true)
     {
         Log.Debug("Loading display settings from file: {Filename}", filename);
         if (!File.Exists(filename))
@@ -285,7 +283,7 @@ public static class DisplaySettings
         Log.Debug("Getting current display settings");
         if (GetDisplaySettings(out var pathInfoArrayCurrent, out var modeInfoArrayCurrent, out var additionalInfoCurrent, false))
         {
-            if (!noIDMatch)
+            if (matchAdapterIds)
             {
                 // For some reason the adapterID parameter changes upon system restart, all other parameters however, especially the ID remain constant.
                 // We check the loaded settings against the current settings replacing the adapaterID with the other parameters
