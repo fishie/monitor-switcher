@@ -8,7 +8,7 @@ using MonitorSwitcher;
 
 namespace MonitorSwitcherGui;
 
-public class MonitorSwitcherGUI : Form
+public class MonitorSwitcherGui : Form
 {
     [STAThread]
     public static void Main(string[] args)
@@ -29,7 +29,7 @@ public class MonitorSwitcherGUI : Form
 
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new MonitorSwitcherGUI(customSettingsDirectory));
+        Application.Run(new MonitorSwitcherGui(customSettingsDirectory));
     }
 
     private readonly NotifyIcon trayIcon;
@@ -38,7 +38,7 @@ public class MonitorSwitcherGUI : Form
     private readonly string settingsDirectoryProfiles;
     private readonly List<Hotkey> Hotkeys;
 
-    public MonitorSwitcherGUI(string CustomSettingsDirectory)
+    public MonitorSwitcherGui(string CustomSettingsDirectory)
     {
         // Initialize settings directory
         settingsDirectory = DisplaySettings.GetSettingsDirectory(CustomSettingsDirectory);
@@ -59,16 +59,23 @@ public class MonitorSwitcherGUI : Form
         KeyHooksRefresh();
 
         // Build up context menu
-        trayMenu = new ContextMenuStrip();
-        trayMenu.ImageList = new ImageList();
-        trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.MainIcon.ico"));
-        trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.DeleteProfile.ico"));
-        trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.Exit.ico"));
-        trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.Profile.ico"));
-        trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.SaveProfile.ico"));
-        trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.NewProfile.ico"));
-        trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.About.ico"));
-        trayMenu.ImageList.Images.Add(new Icon(GetType(), "Icons.Hotkey.ico"));
+        trayMenu = new ContextMenuStrip
+        {
+            ImageList = new ImageList
+            {
+                Images =
+                {
+                    new Icon(GetType(), "Icons.MainIcon.ico"),
+                    new Icon(GetType(), "Icons.DeleteProfile.ico"),
+                    new Icon(GetType(), "Icons.Exit.ico"),
+                    new Icon(GetType(), "Icons.Profile.ico"),
+                    new Icon(GetType(), "Icons.SaveProfile.ico"),
+                    new Icon(GetType(), "Icons.NewProfile.ico"),
+                    new Icon(GetType(), "Icons.About.ico"),
+                    new Icon(GetType(), "Icons.Hotkey.ico"),
+                }
+            }
+        };
 
         // add paypal png logo
         Assembly myAssembly = Assembly.GetExecutingAssembly();
@@ -632,7 +639,7 @@ public class Hotkey
         RemoveKey = false;
     }
 
-    public void RegisterHotkey(MonitorSwitcherGUI parent)
+    public void RegisterHotkey(MonitorSwitcherGui parent)
     {
         hotkeyCtrl.Alt = Alt;
         hotkeyCtrl.Shift = Shift;
