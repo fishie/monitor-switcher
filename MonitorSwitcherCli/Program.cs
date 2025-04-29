@@ -1,12 +1,13 @@
-using MonitorSwitcher;
+﻿using MonitorSwitcher;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 
-static void DebugOutput(string text)
-{
-    if (DisplaySettings.debug)
-    {
-        Console.WriteLine(text);
-    }
-}
+var loggingLevelSwitch = new LoggingLevelSwitch { MinimumLevel = LogEventLevel.Information };
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .MinimumLevel.ControlledBy(loggingLevelSwitch)
+    .CreateLogger();
 
 bool validCommand = false;
 foreach (string iArg in args)
@@ -16,12 +17,12 @@ foreach (string iArg in args)
     switch (argElements[0].ToLower())
     {
         case "-debug":
-            DisplaySettings.debug = true;
-            DebugOutput("\nDebug output enabled");
+            loggingLevelSwitch.MinimumLevel = LogEventLevel.Debug;
+            Log.Debug("Debug output enabled");
             break;
         case "-noidmatch":
             DisplaySettings.noIDMatch = true;
-            DebugOutput("\nDisabled matching of adapter IDs");
+            Log.Debug("Disabled matching of adapter IDs");
             break;
         case "-save":
             DisplaySettings.SaveDisplaySettings(argElements[1]);
@@ -38,7 +39,7 @@ foreach (string iArg in args)
             }
             else
             {
-                Console.WriteLine("Failed to get display settings");
+                Log.Error("Failed to get display settings");
             }
             validCommand = true;
             break;

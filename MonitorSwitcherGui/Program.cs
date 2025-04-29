@@ -17,7 +17,7 @@ public class MonitorSwitcherGUI : Form
         string customSettingsDirectory = "";
         foreach (string iArg in args)
         {
-            string[] argElements = iArg.Split(new char[] { ':' }, 2);
+            string[] argElements = iArg.Split(':', 2);
 
             switch (argElements[0].ToLower())
             {
