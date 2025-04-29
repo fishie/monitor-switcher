@@ -79,18 +79,20 @@ public class MonitorSwitcherGui : Form
 
         // add paypal png logo
         Assembly myAssembly = Assembly.GetExecutingAssembly();
-        Stream myStream = myAssembly.GetManifestResourceStream("MonitorSwitcherGui.Icons.PayPal.png");
+        using Stream myStream = myAssembly.GetManifestResourceStream("MonitorSwitcherGui.Icons.PayPal.png");
         trayMenu.ImageList.Images.Add(Image.FromStream(myStream));
 
         // finally build tray menu
         BuildTrayMenu();
 
         // Create tray icon
-        trayIcon = new NotifyIcon();
-        trayIcon.Text = "Monitor Profile Switcher";
-        trayIcon.Icon = new Icon(GetType(), "Icons.MainIcon.ico");
-        trayIcon.ContextMenuStrip = trayMenu;
-        trayIcon.Visible = true;
+        trayIcon = new NotifyIcon
+        {
+            Text = "Monitor Profile Switcher",
+            Icon = new Icon(GetType(), "Icons.MainIcon.ico"),
+            ContextMenuStrip = trayMenu,
+            Visible = true,
+        };
         trayIcon.MouseUp += OnTrayClick;
     }
 
@@ -133,7 +135,7 @@ public class MonitorSwitcherGui : Form
     }
 
     public void KeyHook_KeyDown(object sender, HandledEventArgs e)
-    {            
+    {
         e.Handled = true;
     } 
 
@@ -149,7 +151,7 @@ public class MonitorSwitcherGui : Form
         if (!File.Exists(SettingsFileFromName("Hotkeys")))
             return;
 
-        XmlSerializer readerHotkey = new XmlSerializer(typeof(Hotkey));           
+        XmlSerializer readerHotkey = new XmlSerializer(typeof(Hotkey));
 
         try
         {
@@ -188,25 +190,23 @@ public class MonitorSwitcherGui : Form
 
         try
         {
-            using (FileStream fileStream = new FileStream(SettingsFileFromName("Hotkeys"), FileMode.Create))
+            using FileStream fileStream = new FileStream(SettingsFileFromName("Hotkeys"), FileMode.Create);
+            XmlWriter xmlWriter = XmlWriter.Create(fileStream, xmlSettings);
+            xmlWriter.WriteStartDocument();
+            xmlWriter.WriteStartElement("hotkeys");
+            foreach (Hotkey hotkey in Hotkeys)
             {
-                XmlWriter xml = XmlWriter.Create(fileStream, xmlSettings);
-                xml.WriteStartDocument();
-                xml.WriteStartElement("hotkeys");
-                foreach (Hotkey hotkey in Hotkeys)
-                {
-                    writerHotkey.Serialize(xml, hotkey);
-                }
-                xml.WriteEndElement();
-                xml.WriteEndDocument();
-                xml.Flush();
-                xml.Close();
-
-                fileStream.Close();
+                writerHotkey.Serialize(xmlWriter, hotkey);
             }
+            xmlWriter.WriteEndElement();
+            xmlWriter.WriteEndDocument();
+            xmlWriter.Flush();
+            xmlWriter.Close();
+            fileStream.Close();
         }
         catch
         {
+            // TODO: why do we ignore all exceptions?
         }
     }
 
@@ -255,11 +255,13 @@ public class MonitorSwitcherGui : Form
 
         // Menu for saving items
         trayMenu.Items.Add("-");
-        ToolStripMenuItem saveMenu = new ToolStripMenuItem("Save Profile");
-        saveMenu.ImageIndex = 4;
-        saveMenu.DropDown = new ToolStripDropDownMenu();
+        var saveMenu = new ToolStripMenuItem("Save Profile")
+        {
+            ImageIndex = 4,
+            DropDown = new ToolStripDropDownMenu()
+        };
         saveMenu.DropDown.ImageList = trayMenu.ImageList;
-        trayMenu.Items.Add(saveMenu);            
+        trayMenu.Items.Add(saveMenu);
 
         newMenuItem = saveMenu.DropDownItems.Add("New Profile...");
         newMenuItem.Click += OnMenuSaveAs;
@@ -267,16 +269,20 @@ public class MonitorSwitcherGui : Form
         saveMenu.DropDownItems.Add("-");
 
         // Menu for deleting items
-        ToolStripMenuItem deleteMenu = new ToolStripMenuItem("Delete Profile");
-        deleteMenu.ImageIndex = 1;
-        deleteMenu.DropDown = new ToolStripDropDownMenu();
+        var deleteMenu = new ToolStripMenuItem("Delete Profile")
+        {
+            ImageIndex = 1,
+            DropDown = new ToolStripDropDownMenu()
+        };
         deleteMenu.DropDown.ImageList = trayMenu.ImageList;
         trayMenu.Items.Add(deleteMenu);
 
         // Menu for hotkeys
-        ToolStripMenuItem hotkeyMenu = new ToolStripMenuItem("Set Hotkeys");
-        hotkeyMenu.ImageIndex = 7;
-        hotkeyMenu.DropDown = new ToolStripDropDownMenu();
+        var hotkeyMenu = new ToolStripMenuItem("Set Hotkeys")
+        {
+            ImageIndex = 7,
+            DropDown = new ToolStripDropDownMenu()
+        };
         hotkeyMenu.DropDown.ImageList = trayMenu.ImageList;
         trayMenu.Items.Add(hotkeyMenu);
 
@@ -649,7 +655,7 @@ public class Hotkey
 
         if (!hotkeyCtrl.GetCanRegister(parent))
         {
-            // something went wrong, ignore for nw
+            // something went wrong, ignore for now
         }
         else
         {
