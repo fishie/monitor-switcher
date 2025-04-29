@@ -78,9 +78,14 @@ public class MonitorSwitcherGui : Form
         };
 
         // add paypal png logo
-        Assembly myAssembly = Assembly.GetExecutingAssembly();
-        using Stream myStream = myAssembly.GetManifestResourceStream("MonitorSwitcherGui.Icons.PayPal.png");
-        trayMenu.ImageList.Images.Add(Image.FromStream(myStream));
+        var assembly = Assembly.GetExecutingAssembly();
+        using var stream = assembly.GetManifestResourceStream("MonitorSwitcherGui.Icons.PayPal.png");
+        if (stream == null)
+        {
+            throw new Exception(
+                "No resources were specified during compilation or the resource is not visible to the caller.");
+        }
+        trayMenu.ImageList.Images.Add(Image.FromStream(stream));
 
         // finally build tray menu
         BuildTrayMenu();
@@ -137,9 +142,9 @@ public class MonitorSwitcherGui : Form
     public void KeyHook_KeyDown(object sender, HandledEventArgs e)
     {
         e.Handled = true;
-    } 
+    }
 
-    public void LoadSettings()
+    private void LoadSettings()
     {
         // Unregister and clear all existing hotkeys
         foreach (Hotkey hotkey in Hotkeys) {
@@ -151,27 +156,27 @@ public class MonitorSwitcherGui : Form
         if (!File.Exists(SettingsFileFromName("Hotkeys")))
             return;
 
-        XmlSerializer readerHotkey = new XmlSerializer(typeof(Hotkey));
+        var readerHotkey = new XmlSerializer(typeof(Hotkey));
 
         try
         {
-            XmlReader xml = XmlReader.Create(SettingsFileFromName("Hotkeys"));
-            xml.Read();
+            var xmlReader = XmlReader.Create(SettingsFileFromName("Hotkeys"));
+            xmlReader.Read();
             while (true)
             {
-                if (xml.Name.CompareTo("Hotkey") == 0 && xml.IsStartElement())
+                if (xmlReader.Name.CompareTo("Hotkey") == 0 && xmlReader.IsStartElement())
                 {
-                    Hotkey hotkey = (Hotkey)readerHotkey.Deserialize(xml);
+                    Hotkey hotkey = (Hotkey)readerHotkey.Deserialize(xmlReader);
                     Hotkeys.Add(hotkey);
                     continue;
                 }
 
-                if (!xml.Read())
+                if (!xmlReader.Read())
                 {
                     break;
                 }
             }
-            xml.Close();
+            xmlReader.Close();
         }
         catch
         {
@@ -305,7 +310,7 @@ public class MonitorSwitcherGui : Form
             newMenuItem = hotkeyMenu.DropDownItems.Add(itemCaption + " " + hotkeyString);
             newMenuItem.Tag = itemCaption;
             newMenuItem.Click += OnHotkeySet;
-            newMenuItem.ImageIndex = 3;                
+            newMenuItem.ImageIndex = 3;
         }
 
         trayMenu.Items.Add("-");
@@ -317,7 +322,7 @@ public class MonitorSwitcherGui : Form
         newMenuItem = trayMenu.Items.Add("About");
         newMenuItem.Click += OnMenuAbout;
         newMenuItem.ImageIndex = 6;
-        
+
         newMenuItem = trayMenu.Items.Add("Donate");
         newMenuItem.Click += OnMenuDonate;
         newMenuItem.ImageIndex = 8;
@@ -462,7 +467,7 @@ public class MonitorSwitcherGui : Form
     {
         Visible = false; // Hide form window.
         ShowInTaskbar = false; // Remove from taskbar.
-        
+
         base.OnLoad(e);
     }
 
@@ -547,7 +552,7 @@ public class MonitorSwitcherGui : Form
                 textBox.Text = "";
         }
     }
-    
+
     static void textBox_KeyDown(object sender, KeyEventArgs e)
     {
         TextBox textBox = sender as TextBox;
