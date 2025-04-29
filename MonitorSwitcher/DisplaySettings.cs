@@ -250,7 +250,7 @@ public static class DisplaySettings
             }
             else if ((xmlReader.Name.CompareTo("MonitorAdditionalInfo") == 0) && (xmlReader.IsStartElement()))
             {
-                Log.Debug("\t\tReading additional informations");
+                Log.Debug("\t\tReading additional information");
                 var additionalInfo = readerAdditionalInfo.Deserialize<CcdWrapper.MonitorAdditionalInfo>(xmlReader);
                 additionalInfoList.Add(additionalInfo);
                 continue;
@@ -285,7 +285,7 @@ public static class DisplaySettings
             if (matchAdapterIds)
             {
                 // For some reason the adapterID parameter changes upon system restart, all other parameters however, especially the ID remain constant.
-                // We check the loaded settings against the current settings replacing the adapaterID with the other parameters
+                // We check the loaded settings against the current settings replacing the adapterID with the other parameters
                 Log.Debug("Matching of adapter IDs for pathInfo");
                 for (int iPathInfo = 0; iPathInfo < pathInfoArray.Length; iPathInfo++)
                 {
@@ -329,7 +329,7 @@ public static class DisplaySettings
                         if ((modeInfoArray[iModeInfo].id == pathInfoArray[iPathInfo].targetInfo.id) &&
                             (modeInfoArray[iModeInfo].infoType == CcdWrapper.DisplayConfigModeInfoType.Target))
                         {
-                            Log.Debug("\t\tTarget adapter id found, checking for source modeInfo and adpaterID");
+                            Log.Debug("\t\tTarget adapter id found, checking for source modeInfo and adapterID");
                             // We found target adapter id, now lets look for the source modeInfo and adapterID
                             for (int iModeInfoSource = 0; iModeInfoSource < modeInfoArray.Length; iModeInfoSource++)
                             {
@@ -344,7 +344,7 @@ public static class DisplaySettings
                                     (modeInfoArray[iModeInfoSource].adapterId.LowPart == modeInfoArray[iModeInfo].adapterId.LowPart) &&
                                     (modeInfoArray[iModeInfoSource].infoType == CcdWrapper.DisplayConfigModeInfoType.Source))
                                 {
-                                    Log.Debug("\t\t!!! IDs are a match, taking adpater id from pathInfo !!!");
+                                    Log.Debug("\t\t!!! IDs are a match, taking adapter id from pathInfo !!!");
                                     modeInfoArray[iModeInfoSource].adapterId.LowPart = pathInfoArray[iPathInfo].sourceInfo.adapterId.LowPart;
                                     break;
                                 }
@@ -401,7 +401,7 @@ public static class DisplaySettings
                     }
 
                     Log.Debug("Alternative matching mode");
-                    // For each modeInfo iterate over the current additional informations, i.e. monitor names and paths, and find the one matching in the current setup
+                    // For each modeInfo iterate over the current additional information, i.e. monitor names and paths, and find the one matching in the current setup
                     for (int iModeInfo = 0; iModeInfo < modeInfoArray.Length; iModeInfo++)
                     {
                         for (int iAdditionalInfoCurrent = 0; iAdditionalInfoCurrent < additionalInfoCurrent.Length; iAdditionalInfoCurrent++)
@@ -457,7 +457,7 @@ public static class DisplaySettings
                 if (status != 0)
                 {
                     Log.Error("Failed to set display settings using alternative method, ERROR: {Status}", status);
-                    Log.Information("Trying yet another method for adapter ID maching:");
+                    Log.Information("Trying yet another method for adapter ID matching:");
 
                     // Restore original settings and adapter IDs
                     Log.Debug("Converting again to simple arrays for API compatibility");
@@ -557,10 +557,9 @@ public static class DisplaySettings
         stringWriter.WriteLine("</pathInfoArray>");
 
         stringWriter.WriteLine("<modeInfoArray>");
-        for (int iModeInfo = 0; iModeInfo < modeInfoArray.Length; iModeInfo++)
+        foreach (var modeInfo in modeInfoArray)
         {
             stringWriter.WriteLine("<modeInfo>");
-            CcdWrapper.DisplayConfigModeInfo modeInfo = modeInfoArray[iModeInfo];
             stringWriter.WriteLine("<id>" + modeInfo.id.ToString() + "</id>");
             writerModeAdapterID.Serialize(stringWriter, modeInfo.adapterId);
             writerModeInfoType.Serialize(stringWriter, modeInfo.infoType);

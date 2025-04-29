@@ -386,7 +386,7 @@ public class CcdWrapper
     }
 
     /// <summary>
-    /// Just an contract.
+    /// Just a contract.
     /// </summary>
     public interface IDisplayConfigInfo
     {
@@ -467,7 +467,7 @@ public class CcdWrapper
 
 
         [XmlElement(ElementName = "monitorDevicePath")]
-        public string monitorDevicePath64
+        public string? monitorDevicePath64
         {
             get
             {
@@ -494,7 +494,7 @@ public class CcdWrapper
         public string? monitorDevicePath;
 
         [XmlElement(ElementName = "monitorFriendlyDevice")]
-        public string monitorFriendlyDevice64
+        public string? monitorFriendlyDevice64
         {
             get
             {

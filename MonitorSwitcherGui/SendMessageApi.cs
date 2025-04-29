@@ -2,7 +2,7 @@
 
 namespace MonitorSwitcherGui;
 
-public class SendMessageApi
+public static class SendMessageApi
 {
     public const int HWND_BROADCAST = 0xFFFF;
     public const int WM_SYSCOMMAND   = 0x0112;
@@ -14,10 +14,4 @@ public class SendMessageApi
 
     [DllImport("user32")]
     public static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam);
-
-    [DllImport("user32.dll")]
-    public static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-
-    [DllImport("kernel32")]
-    public static extern IntPtr GetConsoleWindow();
 }

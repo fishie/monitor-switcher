@@ -38,10 +38,10 @@ public class MonitorSwitcherGui : Form
     private readonly string settingsDirectoryProfiles;
     private readonly List<Hotkey> Hotkeys;
 
-    public MonitorSwitcherGui(string CustomSettingsDirectory)
+    public MonitorSwitcherGui(string customSettingsDirectory)
     {
         // Initialize settings directory
-        settingsDirectory = DisplaySettings.GetSettingsDirectory(CustomSettingsDirectory);
+        settingsDirectory = DisplaySettings.GetSettingsDirectory(customSettingsDirectory);
         settingsDirectoryProfiles = DisplaySettings.GetSettingsProfileDirectory(settingsDirectory);
 
         if (!Directory.Exists(settingsDirectory))
@@ -299,7 +299,7 @@ public class MonitorSwitcherGui : Form
             Hotkey hotkey = FindHotkey(Path.GetFileNameWithoutExtension(profile));
             if (hotkey != null)
             {
-                hotkeyString = "(" + hotkey.ToString() + ")";
+                hotkeyString = $"({hotkey})";
             }
 
             newMenuItem = hotkeyMenu.DropDownItems.Add(itemCaption + " " + hotkeyString);
@@ -387,9 +387,7 @@ public class MonitorSwitcherGui : Form
     {
         string profileName = ((ToolStripMenuItem)sender).Tag as string;
         Hotkey hotkey = FindHotkey(profileName);
-        bool isNewHotkey = false;
-        if (hotkey == null)
-            isNewHotkey = true;
+        bool isNewHotkey = hotkey == null;
         if (HotkeySetting("Set Hotkey for Monitor Profile '" + profileName + "'", "Enter name of new profile", ref hotkey) == DialogResult.OK)
         {
             if (isNewHotkey && hotkey != null)
@@ -400,12 +398,9 @@ public class MonitorSwitcherGui : Form
                     Hotkeys.Add(hotkey);
                 }
             }
-            else if (hotkey != null)
+            else if (hotkey != null && hotkey.RemoveKey)
             {
-                if (hotkey.RemoveKey)
-                {
-                    Hotkeys.Remove(hotkey);
-                }
+                Hotkeys.Remove(hotkey);
             }
 
             KeyHooksRefresh();
@@ -547,7 +542,7 @@ public class MonitorSwitcherGui : Form
         if (textBox.Tag != null)
         {
             Hotkey hotkey = textBox.Tag as Hotkey;
-            // check if any additional key was pressed, if not don't acceppt hotkey
+            // check if any additional key was pressed, if not don't accept hotkey
             if (hotkey.Key < Keys.D0 || !hotkey.Alt && !hotkey.Ctrl && !hotkey.Shift)
                 textBox.Text = "";
         }
@@ -556,9 +551,7 @@ public class MonitorSwitcherGui : Form
     static void textBox_KeyDown(object sender, KeyEventArgs e)
     {
         TextBox textBox = sender as TextBox;
-        Hotkey hotkey = textBox.Tag as Hotkey;
-        if (hotkey == null)
-            hotkey = new Hotkey();
+        Hotkey hotkey = textBox.Tag as Hotkey ?? new Hotkey();
         hotkey.AssignFromKeyEventArgs(e);
 
         e.Handled = true;
@@ -679,17 +672,17 @@ public class Hotkey
     {
         List<string> keys = new List<string>();
 
-        if (Ctrl == true)
+        if (Ctrl)
         {
             keys.Add("CTRL");
         }
 
-        if (Alt == true)
+        if (Alt)
         {
             keys.Add("ALT");
         }
 
-        if (Shift == true)
+        if (Shift)
         {
             keys.Add("SHIFT");
         }

@@ -199,7 +199,7 @@ public class HotkeyCtrl : IMessageFilter
         { return "(none)"; }
 
         // Build key name
-        string keyName = Enum.GetName(typeof(Keys), this.keyCode); ;
+        string keyName = Enum.GetName(typeof(Keys), this.keyCode);
         switch (this.keyCode)
         {
             case Keys.D0:

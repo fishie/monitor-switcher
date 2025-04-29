@@ -51,7 +51,7 @@ foreach (string arg in args)
 if (!validCommand)
 {
     Console.WriteLine("""
-        Monitor Profile Switcher command line utlility (version 0.9.0.0):
+        Monitor Profile Switcher command line utility (version 0.9.0.0):
         
         Parameters to MonitorSwitcher.exe:
             -save:{xmlfile}    save the current monitor configuration to file (full path)
