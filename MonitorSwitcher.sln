@@ -10,8 +10,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorSwitcherGui", "Monit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorSwitcherCli", "MonitorSwitcherCli\MonitorSwitcherCli.csproj", "{531C5395-5EEC-4629-A285-B40105AAF593}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorSwitcherGUIConfig", "MonitorSwitcherGUIConfig\MonitorSwitcherGUIConfig.csproj", "{E3BEA495-71D7-4625-B6F5-E28156E326E3}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorSwitcher", "MonitorSwitcher\MonitorSwitcher.csproj", "{A5D1A76A-B67A-4E05-B894-3A87DD60F1EE}"
 EndProject
 Global
@@ -28,10 +26,6 @@ Global
 		{531C5395-5EEC-4629-A285-B40105AAF593}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{531C5395-5EEC-4629-A285-B40105AAF593}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{531C5395-5EEC-4629-A285-B40105AAF593}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E3BEA495-71D7-4625-B6F5-E28156E326E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E3BEA495-71D7-4625-B6F5-E28156E326E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E3BEA495-71D7-4625-B6F5-E28156E326E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E3BEA495-71D7-4625-B6F5-E28156E326E3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A5D1A76A-B67A-4E05-B894-3A87DD60F1EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A5D1A76A-B67A-4E05-B894-3A87DD60F1EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5D1A76A-B67A-4E05-B894-3A87DD60F1EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
