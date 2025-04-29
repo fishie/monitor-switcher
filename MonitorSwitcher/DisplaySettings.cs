@@ -139,17 +139,16 @@ public static class DisplaySettings
             xmlWriter.WriteStartDocument();
             xmlWriter.WriteStartElement("displaySettings");
             xmlWriter.WriteStartElement("pathInfoArray");
-            foreach (CcdWrapper.DisplayConfigPathInfo pathInfo in pathInfoArray)
+            foreach (var pathInfo in pathInfoArray)
             {
                 writerPath.Serialize(xmlWriter, pathInfo);
             }
             xmlWriter.WriteEndElement();
 
             xmlWriter.WriteStartElement("modeInfoArray");
-            for (int iModeInfo = 0; iModeInfo < modeInfoArray.Length; iModeInfo++)
+            foreach (var modeInfo in modeInfoArray)
             {
                 xmlWriter.WriteStartElement("modeInfo");
-                CcdWrapper.DisplayConfigModeInfo modeInfo = modeInfoArray[iModeInfo];
                 xmlWriter.WriteElementString("id", modeInfo.id.ToString());
                 writerModeAdapterID.Serialize(xmlWriter, modeInfo.adapterId);
                 writerModeInfoType.Serialize(xmlWriter, modeInfo.infoType);
@@ -166,9 +165,9 @@ public static class DisplaySettings
             xmlWriter.WriteEndElement();
 
             xmlWriter.WriteStartElement("additionalInfo");
-            for (int iAdditionalInfo = 0; iAdditionalInfo < additionalInfo.Length; iAdditionalInfo++)
+            foreach (var info in additionalInfo)
             {
-                writerAdditionalInfo.Serialize(xmlWriter, additionalInfo[iAdditionalInfo]);
+                writerAdditionalInfo.Serialize(xmlWriter, info);
             }
             xmlWriter.WriteEndElement();
             xmlWriter.WriteEndDocument();
