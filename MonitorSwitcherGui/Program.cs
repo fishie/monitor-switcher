@@ -83,7 +83,7 @@ public class MonitorSwitcherGui : Form
         if (stream == null)
         {
             throw new Exception(
-                "No resources were specified during compilation or the resource is not visible to the caller.");
+                "No resources were specified during compilation or the resource is not visible to the caller");
         }
         trayMenu.ImageList.Images.Add(Image.FromStream(stream));
 
@@ -131,16 +131,15 @@ public class MonitorSwitcherGui : Form
         }
     }
 
-    public void KeyHook_KeyUp(object sender, HandledEventArgs e)
+    public void KeyHook_KeyUp(object? sender, HandledEventArgs e)
     {
-        HotkeyCtrl hotkeyCtrl = sender as HotkeyCtrl;
-        Hotkey hotkey = FindHotkey(hotkeyCtrl);
+        var hotkeyCtrl = sender as HotkeyCtrl;
+        var hotkey = FindHotkey(hotkeyCtrl);
+        if (hotkey == null)
+        {
+            throw new Exception("Hotkey could not be found");
+        }
         LoadProfile(hotkey.profileName);
-        e.Handled = true;
-    }
-
-    public void KeyHook_KeyDown(object sender, HandledEventArgs e)
-    {
         e.Handled = true;
     }
 
@@ -166,7 +165,7 @@ public class MonitorSwitcherGui : Form
             {
                 if (xmlReader.Name.CompareTo("Hotkey") == 0 && xmlReader.IsStartElement())
                 {
-                    Hotkey hotkey = (Hotkey)readerHotkey.Deserialize(xmlReader);
+                    var hotkey = readerHotkey.Deserialize<Hotkey>(xmlReader);
                     Hotkeys.Add(hotkey);
                     continue;
                 }
@@ -184,7 +183,7 @@ public class MonitorSwitcherGui : Form
         }
     }
 
-    public void SaveSettings()
+    private void SaveSettings()
     {
         var writerHotkey = new XmlSerializer(typeof(Hotkey));
         var settings = new XmlWriterSettings { CloseOutput = true };
@@ -211,29 +210,17 @@ public class MonitorSwitcherGui : Form
         }
     }
 
-    public Hotkey FindHotkey(HotkeyCtrl ctrl)
+    private Hotkey? FindHotkey(HotkeyCtrl? ctrl)
     {
-        foreach (Hotkey hotkey in Hotkeys)
-        {
-            if (hotkey.hotkeyCtrl == ctrl)
-                return hotkey;
-        }
-
-        return null;
+        return Hotkeys.FirstOrDefault(hotkey => hotkey.hotkeyCtrl == ctrl);
     }
 
-    public Hotkey FindHotkey(string name)
+    private Hotkey? FindHotkey(string name)
     {
-        foreach (Hotkey hotkey in Hotkeys)
-        {
-            if (hotkey.profileName.CompareTo(name) == 0)
-                return hotkey;
-        }
-
-        return null;
+        return Hotkeys.FirstOrDefault(hotkey => hotkey.profileName == name);
     }
 
-    public void BuildTrayMenu()
+    private void BuildTrayMenu()
     {
         ToolStripItem newMenuItem;
 
@@ -243,13 +230,19 @@ public class MonitorSwitcherGui : Form
         trayMenu.Items.Add("-");
 
         // Find all profile files
-        string[] profiles = Directory.GetFiles(settingsDirectoryProfiles, "*.xml");
+        string[] profiles = Directory.GetFiles(settingsDirectoryProfiles, "*.xml")
+            .Select(filename =>
+            {
+                var profile = Path.GetFileNameWithoutExtension(filename);
+                return profile ?? throw new NullReferenceException(
+                    $"Could not get file name without extension for file name '{filename}'");
+            })
+            .ToArray();
 
         // Add to load menu
         foreach (string profile in profiles)
         {
-            string itemCaption = Path.GetFileNameWithoutExtension(profile);
-            newMenuItem = trayMenu.Items.Add(itemCaption);
+            newMenuItem = trayMenu.Items.Add(profile);
             newMenuItem.Click += OnMenuLoad;
             newMenuItem.ImageIndex = 3;
         }
@@ -290,25 +283,24 @@ public class MonitorSwitcherGui : Form
         // Add to delete, save and hotkey menus
         foreach (string profile in profiles)
         {
-            string itemCaption = Path.GetFileNameWithoutExtension(profile);
-            newMenuItem = saveMenu.DropDownItems.Add(itemCaption);
+            newMenuItem = saveMenu.DropDownItems.Add(profile);
             newMenuItem.Click += OnMenuSave;
             newMenuItem.ImageIndex = 3;
 
-            newMenuItem = deleteMenu.DropDownItems.Add(itemCaption);
+            newMenuItem = deleteMenu.DropDownItems.Add(profile);
             newMenuItem.Click += OnMenuDelete;
             newMenuItem.ImageIndex = 3;
 
             string hotkeyString = "(No Hotkey)";
             // check if a hotkey is assigned
-            Hotkey hotkey = FindHotkey(Path.GetFileNameWithoutExtension(profile));
+            var hotkey = FindHotkey(profile);
             if (hotkey != null)
             {
                 hotkeyString = $"({hotkey})";
             }
 
-            newMenuItem = hotkeyMenu.DropDownItems.Add(itemCaption + " " + hotkeyString);
-            newMenuItem.Tag = itemCaption;
+            newMenuItem = hotkeyMenu.DropDownItems.Add($"{profile} {hotkeyString}");
+            newMenuItem.Text = profile;
             newMenuItem.Click += OnHotkeySet;
             newMenuItem.ImageIndex = 3;
         }
@@ -332,39 +324,37 @@ public class MonitorSwitcherGui : Form
         newMenuItem.ImageIndex = 2;
     }
 
-    public string ProfileFileFromName(string name)
+    private string ProfileFileFromName(string? profileName)
     {
-        string fileName = name + ".xml";
-        string filePath = Path.Combine(settingsDirectoryProfiles, fileName);
-
-        return filePath;
+        if (profileName == null)
+        {
+            throw new NullReferenceException("Profile name is null");
+        }
+        return Path.Combine(settingsDirectoryProfiles, profileName + ".xml");
     }
 
-    public string SettingsFileFromName(string name)
+    private string SettingsFileFromName(string name)
     {
-        string fileName = name + ".xml";
-        string filePath = Path.Combine(settingsDirectory, fileName);
-
-        return filePath;
+        return Path.Combine(settingsDirectory, name + ".xml");
     }
 
-    public void OnEnergySaving(object sender, EventArgs e)
+    private void OnEnergySaving(object? sender, EventArgs e)
     {
         Thread.Sleep(500); // wait for 500 milliseconds to give the user the chance to leave the mouse alone
         SendMessageApi.PostMessage(new IntPtr(SendMessageApi.HWND_BROADCAST), SendMessageApi.WM_SYSCOMMAND, new IntPtr(SendMessageApi.SC_MONITORPOWER), new IntPtr(SendMessageApi.MONITOR_OFF));
     }
 
-    public void OnMenuAbout(object sender, EventArgs e)
+    private void OnMenuAbout(object? sender, EventArgs e)
     {
         MessageBox.Show("Monitor Profile Switcher by Martin Krämer \n(MartinKraemer84@gmail.com)\nVersion 0.9.0.0\nCopyright 2013-2017 \n\nhttps://sourceforge.net/projects/monitorswitcher/", "About Monitor Profile Switcher", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
-    public void OnMenuDonate(object sender, EventArgs e)
+    private void OnMenuDonate(object? sender, EventArgs e)
     {
         Process.Start("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y329BPYNKDTLC");
     }
 
-    public void OnMenuSaveAs(object sender, EventArgs e)
+    private void OnMenuSaveAs(object? sender, EventArgs e)
     {
         string profileName = "New Profile";
         if (InputBox("Save as new profile", "Enter name of new profile", ref profileName) == DialogResult.OK)
@@ -388,12 +378,12 @@ public class MonitorSwitcherGui : Form
         }
     }
 
-    public void OnHotkeySet(object sender, EventArgs e)
+    private void OnHotkeySet(object? sender, EventArgs e)
     {
-        string profileName = ((ToolStripMenuItem)sender).Tag as string;
-        Hotkey hotkey = FindHotkey(profileName);
+        var profileName = GetProfileName(sender);
+        var hotkey = FindHotkey(profileName);
         bool isNewHotkey = hotkey == null;
-        if (HotkeySetting("Set Hotkey for Monitor Profile '" + profileName + "'", "Enter name of new profile", ref hotkey) == DialogResult.OK)
+        if (HotkeySetting("Set Hotkey for Monitor Profile '" + profileName + "'", ref hotkey) == DialogResult.OK)
         {
             if (isNewHotkey && hotkey != null)
             {
@@ -413,7 +403,7 @@ public class MonitorSwitcherGui : Form
         }
     }
 
-    public void LoadProfile(string name)
+    private void LoadProfile(string? name)
     {
         if (!DisplaySettings.LoadDisplaySettings(ProfileFileFromName(name)))
         {
@@ -424,34 +414,50 @@ public class MonitorSwitcherGui : Form
         }
     }
 
-    public void OnMenuLoad(object sender, EventArgs e)
+    private void OnMenuLoad(object? sender, EventArgs e)
     {
-        LoadProfile(((ToolStripMenuItem)sender).Text);
+        var profileName = GetProfileName(sender);
+        LoadProfile(profileName);
     }
 
-    public void OnMenuSave(object sender, EventArgs e)
+    private void OnMenuSave(object? sender, EventArgs e)
     {
-        if (!DisplaySettings.SaveDisplaySettings(ProfileFileFromName(((ToolStripMenuItem)sender).Text)))
+        var profileName = GetProfileName(sender);
+        var filename = ProfileFileFromName(profileName);
+        if (!DisplaySettings.SaveDisplaySettings(filename))
         {
             trayIcon.BalloonTipTitle = "Failed to save Multi Monitor profile";
-            trayIcon.BalloonTipText = "MonitorSwitcher was unable to save the current profile to name\"" + ((ToolStripMenuItem)sender).Text + "\"";
+            trayIcon.BalloonTipText = $"MonitorSwitcher was unable to save the current profile to name \"{profileName}\"";
             trayIcon.BalloonTipIcon = ToolTipIcon.Error;
             trayIcon.ShowBalloonTip(5000);
         }
     }
 
-    public void OnMenuDelete(object sender, EventArgs e)
+    private void OnMenuDelete(object? sender, EventArgs e)
     {
-        File.Delete(ProfileFileFromName(((ToolStripMenuItem)sender).Text));
+        var profileName = GetProfileName(sender);
+        var filename = ProfileFileFromName(profileName);
+        File.Delete(filename);
     }
 
-    public void OnTrayClick(object sender, MouseEventArgs e)
+    private static string GetProfileName(object? sender)
+    {
+        return ((ToolStripMenuItem?)sender)?.Text
+            ?? throw new NullReferenceException("Profile name is null");
+    }
+
+    private void OnTrayClick(object? sender, MouseEventArgs e)
     {
         BuildTrayMenu();
 
         if (e.Button == MouseButtons.Left)
         {
-            MethodInfo methodInfo = typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
+            var methodInfo = typeof(NotifyIcon).GetMethod(
+                "ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (methodInfo == null)
+            {
+                throw new NullReferenceException("ShowContextMenu method not found on type NotifyIcon");
+            }
             methodInfo.Invoke(trayIcon, null);
         }
     }
@@ -471,7 +477,7 @@ public class MonitorSwitcherGui : Form
         base.OnLoad(e);
     }
 
-    private void OnMenuExit(object sender, EventArgs e)
+    private void OnMenuExit(object? sender, EventArgs e)
     {
         Application.Exit();
     }
@@ -487,7 +493,7 @@ public class MonitorSwitcherGui : Form
         base.Dispose(isDisposing);
     }
 
-    public static DialogResult HotkeySetting(string title, string promptText, ref Hotkey value)
+    private static DialogResult HotkeySetting(string title, ref Hotkey? value)
     {
         Form form = new Form();
         Label label = new Label();
@@ -540,45 +546,40 @@ public class MonitorSwitcherGui : Form
         return dialogResult;
     }
 
-    static void textBox_KeyUp(object sender, KeyEventArgs e)
+    private static void textBox_KeyUp(object? sender, KeyEventArgs e)
     {
-        TextBox textBox = sender as TextBox;
-
-        if (textBox.Tag != null)
+        if (sender is TextBox { Tag: Hotkey hotkey } textBox)
         {
-            Hotkey hotkey = textBox.Tag as Hotkey;
             // check if any additional key was pressed, if not don't accept hotkey
             if (hotkey.Key < Keys.D0 || !hotkey.Alt && !hotkey.Ctrl && !hotkey.Shift)
                 textBox.Text = "";
         }
     }
 
-    static void textBox_KeyDown(object sender, KeyEventArgs e)
+    private static void textBox_KeyDown(object? sender, KeyEventArgs e)
     {
-        TextBox textBox = sender as TextBox;
-        Hotkey hotkey = textBox.Tag as Hotkey ?? new Hotkey();
-        hotkey.AssignFromKeyEventArgs(e);
-
-        e.Handled = true;
-        e.SuppressKeyPress = true; // don't add user input to text box, just use custom display
-
-        textBox.Text = hotkey.ToString();
-        textBox.Tag = hotkey; // store the current key combination in the textbox tag (for later use)
-     }
-
-    static void buttonClear_Click(object sender, EventArgs e)
-    {
-        TextBox textBox = (sender as Button).Tag as TextBox;
-
-        if (textBox.Tag != null)
+        if (sender is TextBox { Tag: Hotkey hotkey } textBox)
         {
-            Hotkey hotkey = textBox.Tag as Hotkey;
-            hotkey.RemoveKey = true;
+            hotkey.AssignFromKeyEventArgs(e);
+
+            e.Handled = true;
+            e.SuppressKeyPress = true; // don't add user input to text box, just use custom display
+
+            textBox.Text = hotkey.ToString();
+            textBox.Tag = hotkey; // store the current key combination in the textbox tag (for later use)
         }
-        textBox.Clear();
     }
 
-    public static DialogResult InputBox(string title, string promptText, ref string value)
+    private static void buttonClear_Click(object? sender, EventArgs e)
+    {
+        if (sender is Button { Tag: TextBox { Tag: Hotkey hotkey} textBox })
+        {
+            hotkey.RemoveKey = true;
+            textBox.Clear();
+        }
+    }
+
+    private static DialogResult InputBox(string title, string promptText, ref string value)
     {
         Form form = new Form();
         Label label = new Label();
@@ -629,9 +630,9 @@ public class Hotkey
     public bool Shift;
     public bool RemoveKey;
     public Keys Key;
-    public string profileName;
+    public string? profileName;
 
-    public HotkeyCtrl hotkeyCtrl;
+    public readonly HotkeyCtrl hotkeyCtrl;
 
     public Hotkey()
     {

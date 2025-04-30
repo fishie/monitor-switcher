@@ -40,9 +40,9 @@ public class HotkeyCtrl : IMessageFilter
     [XmlIgnore]
     private bool registered = false;
     [XmlIgnore]
-    private Control windowControl;
+    private Control? windowControl;
 
-    public event HandledEventHandler Pressed;
+    public event HandledEventHandler? Pressed;
 
     public HotkeyCtrl() : this(Keys.None, false, false, false, false)
     {
@@ -137,12 +137,12 @@ public class HotkeyCtrl : IMessageFilter
         { throw new NotSupportedException("You cannot unregister a hotkey that is not registered"); }
 
         // It's possible that the control itself has died: in that case, no need to unregister!
-        if (!this.windowControl.IsDisposed)
+        if (this.windowControl != null && !this.windowControl.IsDisposed)
         {
             // Clean up after ourselves
             if (HotkeyCtrl.UnregisterHotKey(this.windowControl.Handle, this.id) == 0)
             {
-                //throw new Win32Exception(); 
+                //throw new Win32Exception();
             }
         }
 
@@ -155,14 +155,21 @@ public class HotkeyCtrl : IMessageFilter
     {
         // Only do something if the key is already registered
         if (!this.registered)
-        { return; }
+        {
+            return;
+        }
+
+        if (this.windowControl == null)
+        {
+            return;
+        }
 
         // Save control reference
-        Control windowControl = this.windowControl;
+        var savedWindowControl = this.windowControl;
 
         // Unregister and then reregister again
         this.Unregister();
-        this.Register(windowControl);
+        this.Register(savedWindowControl);
     }
 
     public bool PreFilterMessage(ref Message message)
@@ -171,7 +178,7 @@ public class HotkeyCtrl : IMessageFilter
         if (message.Msg != HotkeyCtrl.WM_HOTKEY)
         { return false; }
 
-        // Check that the ID is our key and we are registerd
+        // Check that the ID is our key and we are registered
         if (this.registered && (message.WParam.ToInt32() == this.id))
         {
             // Fire the event and pass on the event if our handlers didn't handle it
@@ -184,9 +191,8 @@ public class HotkeyCtrl : IMessageFilter
     private bool OnPressed()
     {
         // Fire the event if we can
-        HandledEventArgs handledEventArgs = new HandledEventArgs(false);
-        if (this.Pressed != null)
-        { this.Pressed(this, handledEventArgs); }
+        var handledEventArgs = new HandledEventArgs(false);
+        this.Pressed?.Invoke(this, handledEventArgs);
 
         // Return whether we handled the event or not
         return handledEventArgs.Handled;
@@ -222,19 +228,13 @@ public class HotkeyCtrl : IMessageFilter
         return modifiers + keyName;
     }
 
-    public bool Empty
-    {
-        get { return this.keyCode == Keys.None; }
-    }
+    private bool Empty => this.keyCode == Keys.None;
 
-    public bool Registered
-    {
-        get { return this.registered; }
-    }
+    public bool Registered => this.registered;
 
     public Keys KeyCode
     {
-        get { return this.keyCode; }
+        get => this.keyCode;
         set
         {
             // Save and reregister
@@ -256,7 +256,7 @@ public class HotkeyCtrl : IMessageFilter
 
     public bool Control
     {
-        get { return this.control; }
+        get => this.control;
         set
         {
             // Save and reregister
@@ -278,7 +278,7 @@ public class HotkeyCtrl : IMessageFilter
 
     public bool Windows
     {
-        get { return this.windows; }
+        get => this.windows;
         set
         {
             // Save and reregister
