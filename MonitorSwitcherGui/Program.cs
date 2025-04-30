@@ -300,7 +300,7 @@ public class MonitorSwitcherGui : Form
             }
 
             newMenuItem = hotkeyMenu.DropDownItems.Add($"{profile} {hotkeyString}");
-            newMenuItem.Text = profile;
+            newMenuItem.Tag = profile;
             newMenuItem.Click += OnHotkeySet;
             newMenuItem.ImageIndex = 3;
         }
@@ -380,7 +380,7 @@ public class MonitorSwitcherGui : Form
 
     private void OnHotkeySet(object? sender, EventArgs e)
     {
-        var profileName = GetProfileName(sender);
+        var profileName = GetMenuItemTagText(sender);
         var hotkey = FindHotkey(profileName);
         bool isNewHotkey = hotkey == null;
         if (HotkeySetting("Set Hotkey for Monitor Profile '" + profileName + "'", ref hotkey) == DialogResult.OK)
@@ -416,13 +416,13 @@ public class MonitorSwitcherGui : Form
 
     private void OnMenuLoad(object? sender, EventArgs e)
     {
-        var profileName = GetProfileName(sender);
+        var profileName = GetMenuItemText(sender);
         LoadProfile(profileName);
     }
 
     private void OnMenuSave(object? sender, EventArgs e)
     {
-        var profileName = GetProfileName(sender);
+        var profileName = GetMenuItemText(sender);
         var filename = ProfileFileFromName(profileName);
         if (!DisplaySettings.SaveDisplaySettings(filename))
         {
@@ -435,15 +435,21 @@ public class MonitorSwitcherGui : Form
 
     private void OnMenuDelete(object? sender, EventArgs e)
     {
-        var profileName = GetProfileName(sender);
+        var profileName = GetMenuItemText(sender);
         var filename = ProfileFileFromName(profileName);
         File.Delete(filename);
     }
 
-    private static string GetProfileName(object? sender)
+    private static string GetMenuItemText(object? sender)
     {
         return ((ToolStripMenuItem?)sender)?.Text
             ?? throw new NullReferenceException("Profile name is null");
+    }
+
+    private static string GetMenuItemTagText(object? sender)
+    {
+        return ((ToolStripMenuItem?)sender)?.Tag as string
+               ?? throw new NullReferenceException("Profile name is null");
     }
 
     private void OnTrayClick(object? sender, MouseEventArgs e)
