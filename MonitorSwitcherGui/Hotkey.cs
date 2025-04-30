@@ -199,25 +199,12 @@ public class HotkeyCtrl : IMessageFilter
         { return "(none)"; }
 
         // Build key name
-        string keyName = Enum.GetName(typeof(Keys), this.keyCode);
-        switch (this.keyCode)
+        var keyName = Enum.GetName(this.keyCode);
+        Keys[] keysToStripFirstCharacter =
+            [Keys.D0, Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9];
+        if (keysToStripFirstCharacter.Contains(this.keyCode))
         {
-            case Keys.D0:
-            case Keys.D1:
-            case Keys.D2:
-            case Keys.D3:
-            case Keys.D4:
-            case Keys.D5:
-            case Keys.D6:
-            case Keys.D7:
-            case Keys.D8:
-            case Keys.D9:
-                // Strip the first character
-                keyName = keyName.Substring(1);
-                break;
-            default:
-                // Leave everything alone
-                break;
+            keyName = keyName?[1..];
         }
 
         // Build modifiers
