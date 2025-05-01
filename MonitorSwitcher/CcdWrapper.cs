@@ -86,7 +86,7 @@ public static class CcdWrapper
         Zero = 0x0,
 
         InUse                        = 0x00000001,
-        FORCIBLE                     = 0x00000002,
+        Forcible                     = 0x00000002,
         ForcedAvailabilityBoot       = 0x00000004,
         ForcedAvailabilityPath       = 0x00000008,
         ForcedAvailabilitySystem     = 0x00000010,
@@ -230,7 +230,7 @@ public static class CcdWrapper
         PalL = 30,
         PalM = 31,
         Other = 255,
-        USB = 65791
+        Usb = 65791
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -303,7 +303,7 @@ public static class CcdWrapper
         OnlyActivePaths = 0x00000002,
         DatabaseCurrent = 0x00000004,
         VirtualModeAware = 0x00000010,
-        IncludeHMD = 0x00000020,
+        IncludeHmd = 0x00000020,
     }
 
     #endregion
@@ -331,7 +331,7 @@ public static class CcdWrapper
     public static extern int GetDisplayConfigBufferSizes(QueryDisplayFlags flags,
         out uint numPathArrayElements, out uint numModeInfoArrayElements);
 
-    public enum DisplayConfigDeviceInfoType : uint
+    private enum DisplayConfigDeviceInfoType : uint
     {
         GetSourceName = 1,
         GetTargetName = 2,
@@ -343,7 +343,7 @@ public static class CcdWrapper
         SetSupportVirtualResolution = 8,
         AdvancedColorInfo = 9,
         AdvancedColorState = 10,
-        SDRWhiteLevel = 11,
+        SdrWhiteLevel = 11,
         ForceUint32 = 0xFFFFFFFF,
 
     }
@@ -411,11 +411,7 @@ public static class CcdWrapper
         {
             get
             {
-                string? outValue = monitorDevicePath;
-                if (outValue == null)
-                {
-                    outValue = "";
-                }
+                string? outValue = monitorDevicePath ?? "";
                 return Convert.ToBase64String(Encoding.UTF32.GetBytes(outValue));
             }
             set
