@@ -159,10 +159,10 @@ public class HotkeyCtrl : IMessageFilter
             return;
         }
 
-        if (this.windowControl == null)
-        {
-            return;
-        }
+        // if (this.windowControl == null)
+        // {
+        //     return;
+        // }
 
         // Save control reference
         var savedWindowControl = this.windowControl;

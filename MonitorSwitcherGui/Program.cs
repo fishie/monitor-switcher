@@ -212,12 +212,28 @@ public class MonitorSwitcherGui : Form
 
     private Hotkey? FindHotkey(HotkeyCtrl? ctrl)
     {
-        return Hotkeys.FirstOrDefault(hotkey => hotkey.hotkeyCtrl == ctrl);
+        foreach (var hotkey in Hotkeys)
+        {
+            if (hotkey.hotkeyCtrl == ctrl)
+            {
+                return hotkey;
+            }
+        }
+
+        return null;
     }
 
     private Hotkey? FindHotkey(string name)
     {
-        return Hotkeys.FirstOrDefault(hotkey => hotkey.profileName == name);
+        foreach (var hotkey in Hotkeys)
+        {
+            if (hotkey.profileName == name)
+            {
+                return hotkey;
+            }
+        }
+
+        return null;
     }
 
     private void BuildTrayMenu()
@@ -564,8 +580,9 @@ public class MonitorSwitcherGui : Form
 
     private static void textBox_KeyDown(object? sender, KeyEventArgs e)
     {
-        if (sender is TextBox { Tag: Hotkey hotkey } textBox)
+        if (sender is TextBox textBox)
         {
+            var hotkey = textBox.Tag as Hotkey ?? new Hotkey();
             hotkey.AssignFromKeyEventArgs(e);
 
             e.Handled = true;
