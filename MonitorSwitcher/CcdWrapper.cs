@@ -10,9 +10,9 @@ namespace MonitorSwitcher;
 /// Original author Erti-Chris Eelmaa || easter199 at hotmail dot com
 /// Modifications made by Martin Krämer || martinkraemer84 at gmail dot com
 /// </summary>
-public class CcdWrapper
+public static class CcdWrapper
 {
-    public const int ERROR_SUCCESS = 0;
+    private const int ERROR_SUCCESS = 0;
 
     [StructLayout(LayoutKind.Sequential)]
     public struct LUID
@@ -71,16 +71,6 @@ public class CcdWrapper
         VirtualModeAware = 0x00008000,
 
         UseDatabaseCurrent = TopologyInternal | TopologyClone | TopologyExtend | TopologyExternal
-    }
-
-    [Flags]
-    public enum DisplayConfigFlags : uint
-    {
-        Zero = 0x0,
-        PathActive = 0x00000001,
-        PathPrefferedUnscaled = 0x00000004,
-        PathSupportVirtualMode = 0x00000008,
-        PathValidFlags = 0x0000000D
     }
 
     [Flags]
@@ -316,20 +306,6 @@ public class CcdWrapper
         IncludeHMD = 0x00000020,
     }
 
-    [Flags]
-    public enum DisplayConfigTopologyId : uint
-    {
-        Zero = 0x0,
-
-        Internal = 0x00000001,
-        Clone = 0x00000002,
-        Extend = 0x00000004,
-        External = 0x00000008,
-        Supplied = 0x00000010,
-        ForceUint32 = 0xFFFFFFFF
-    }
-
-
     #endregion
 
     [DllImport("User32.dll")]
@@ -352,7 +328,8 @@ public class CcdWrapper
     );
 
     [DllImport("User32.dll")]
-    public static extern int GetDisplayConfigBufferSizes(QueryDisplayFlags flags, out uint numPathArrayElements, out uint numModeInfoArrayElements);
+    public static extern int GetDisplayConfigBufferSizes(QueryDisplayFlags flags,
+        out uint numPathArrayElements, out uint numModeInfoArrayElements);
 
     public enum DisplayConfigDeviceInfoType : uint
     {
@@ -385,21 +362,14 @@ public class CcdWrapper
         InSufficientBuffer = 122,
     }
 
-    /// <summary>
-    /// Just a contract.
-    /// </summary>
-    public interface IDisplayConfigInfo
-    {
-    }
-
     [StructLayout(LayoutKind.Sequential)]
-    public struct DisplayConfigTargetDeviceNameFlags
+    private struct DisplayConfigTargetDeviceNameFlags
     {
         public uint value;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct DisplayConfigDeviceInfoHeader
+    private struct DisplayConfigDeviceInfoHeader
     {
         public DisplayConfigDeviceInfoType type;
         public uint size;
@@ -408,7 +378,7 @@ public class CcdWrapper
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public struct DisplayConfigTargetDeviceName
+    private struct DisplayConfigTargetDeviceName
     {
         public DisplayConfigDeviceInfoHeader header;
         public DisplayConfigTargetDeviceNameFlags flags;
@@ -424,36 +394,8 @@ public class CcdWrapper
         public string monitorDevicePath;
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public struct DisplayConfigSourceDeviceName : IDisplayConfigInfo
-    {
-        private const int Cchdevicename = 32;
-
-        public DisplayConfigDeviceInfoHeader header;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = Cchdevicename)]
-        public string viewGdiDeviceName;
-    }
-
     [DllImport("user32.dll")]
-    public static extern int DisplayConfigGetDeviceInfo(ref DisplayConfigTargetDeviceName deviceName);
-
-    public static string MonitorFriendlyName(LUID adapterId, uint targetId)
-    {
-        var deviceName = new DisplayConfigTargetDeviceName
-        {
-            header =
-            {
-                size = (uint)Marshal.SizeOf<DisplayConfigTargetDeviceName>(),
-                adapterId = adapterId,
-                id = targetId,
-                type = DisplayConfigDeviceInfoType.GetTargetName
-            }
-        };
-        var error = DisplayConfigGetDeviceInfo(ref deviceName);
-        if (error != ERROR_SUCCESS)
-            throw new Win32Exception(error);
-        return deviceName.monitorFriendlyDeviceName;
-    }
+    private static extern int DisplayConfigGetDeviceInfo(ref DisplayConfigTargetDeviceName deviceName);
 
     [StructLayout(LayoutKind.Sequential)]
     [Serializable]
@@ -496,11 +438,7 @@ public class CcdWrapper
         {
             get
             {
-                string? outValue = monitorFriendlyDevice;
-                if (outValue == null)
-                {
-                    outValue = "";
-                }
+                string? outValue = monitorFriendlyDevice ?? "";
                 return Convert.ToBase64String(Encoding.UTF32.GetBytes(outValue));
             }
             set
