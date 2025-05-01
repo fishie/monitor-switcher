@@ -32,25 +32,25 @@ public class MonitorSwitcherGui : Form
         Application.Run(new MonitorSwitcherGui(customSettingsDirectory));
     }
 
-    private readonly NotifyIcon trayIcon;
-    private readonly ContextMenuStrip trayMenu;
-    private readonly string settingsDirectory;
-    private readonly string settingsDirectoryProfiles;
-    private readonly List<Hotkey> Hotkeys;
+    private readonly NotifyIcon _trayIcon;
+    private readonly ContextMenuStrip _trayMenu;
+    private readonly string _settingsDirectory;
+    private readonly string _settingsDirectoryProfiles;
+    private readonly List<Hotkey> _hotkeys;
 
     public MonitorSwitcherGui(string customSettingsDirectory)
     {
         // Initialize settings directory
-        settingsDirectory = DisplaySettings.GetSettingsDirectory(customSettingsDirectory);
-        settingsDirectoryProfiles = DisplaySettings.GetSettingsProfileDirectory(settingsDirectory);
+        _settingsDirectory = DisplaySettings.GetSettingsDirectory(customSettingsDirectory);
+        _settingsDirectoryProfiles = DisplaySettings.GetSettingsProfileDirectory(_settingsDirectory);
 
-        if (!Directory.Exists(settingsDirectory))
-            Directory.CreateDirectory(settingsDirectory);
-        if (!Directory.Exists(settingsDirectoryProfiles))
-            Directory.CreateDirectory(settingsDirectoryProfiles);
+        if (!Directory.Exists(_settingsDirectory))
+            Directory.CreateDirectory(_settingsDirectory);
+        if (!Directory.Exists(_settingsDirectoryProfiles))
+            Directory.CreateDirectory(_settingsDirectoryProfiles);
 
         // Initialize Hotkey list before loading settings
-        Hotkeys = new List<Hotkey>();
+        _hotkeys = new List<Hotkey>();
 
         // Load all settings
         LoadSettings();
@@ -59,7 +59,7 @@ public class MonitorSwitcherGui : Form
         KeyHooksRefresh();
 
         // Build up context menu
-        trayMenu = new ContextMenuStrip
+        _trayMenu = new ContextMenuStrip
         {
             ImageList = new ImageList
             {
@@ -85,27 +85,27 @@ public class MonitorSwitcherGui : Form
             throw new Exception(
                 "No resources were specified during compilation or the resource is not visible to the caller");
         }
-        trayMenu.ImageList.Images.Add(Image.FromStream(stream));
+        _trayMenu.ImageList.Images.Add(Image.FromStream(stream));
 
         // finally build tray menu
         BuildTrayMenu();
 
         // Create tray icon
-        trayIcon = new NotifyIcon
+        _trayIcon = new NotifyIcon
         {
             Text = "Monitor Profile Switcher",
             Icon = new Icon(GetType(), "Icons.MainIcon.ico"),
-            ContextMenuStrip = trayMenu,
+            ContextMenuStrip = _trayMenu,
             Visible = true,
         };
-        trayIcon.MouseUp += OnTrayClick;
+        _trayIcon.MouseUp += OnTrayClick;
     }
 
     private void KeyHooksRefresh()
     {
         var removeList = new List<Hotkey>();
         // check which hooks are still valid
-        foreach (Hotkey hotkey in Hotkeys)
+        foreach (var hotkey in _hotkeys)
         {
             if (!File.Exists(ProfileFileFromName(hotkey.profileName)))
             {
@@ -115,16 +115,16 @@ public class MonitorSwitcherGui : Form
         }
         if (removeList.Count > 0)
         {
-            foreach (Hotkey hotkey in removeList)
+            foreach (var hotkey in removeList)
             {
-                Hotkeys.Remove(hotkey);
+                _hotkeys.Remove(hotkey);
             }
             removeList.Clear();
             SaveSettings();
         }
 
         // register the valid hooks
-        foreach (Hotkey hotkey in Hotkeys)
+        foreach (var hotkey in _hotkeys)
         {
             hotkey.UnregisterHotkey();
             hotkey.RegisterHotkey(this);
@@ -146,10 +146,10 @@ public class MonitorSwitcherGui : Form
     private void LoadSettings()
     {
         // Unregister and clear all existing hotkeys
-        foreach (Hotkey hotkey in Hotkeys) {
+        foreach (var hotkey in _hotkeys) {
             hotkey.UnregisterHotkey();
         }
-        Hotkeys.Clear();
+        _hotkeys.Clear();
 
         // Loading the xml file
         if (!File.Exists(SettingsFileFromName("Hotkeys")))
@@ -163,10 +163,10 @@ public class MonitorSwitcherGui : Form
             xmlReader.Read();
             while (true)
             {
-                if (xmlReader.Name.CompareTo("Hotkey") == 0 && xmlReader.IsStartElement())
+                if (xmlReader.Name == "Hotkey" && xmlReader.IsStartElement())
                 {
                     var hotkey = readerHotkey.Deserialize<Hotkey>(xmlReader);
-                    Hotkeys.Add(hotkey);
+                    _hotkeys.Add(hotkey);
                     continue;
                 }
 
@@ -190,11 +190,11 @@ public class MonitorSwitcherGui : Form
 
         try
         {
-            using FileStream fileStream = new FileStream(SettingsFileFromName("Hotkeys"), FileMode.Create);
-            XmlWriter xmlWriter = XmlWriter.Create(fileStream, settings);
+            using var fileStream = new FileStream(SettingsFileFromName("Hotkeys"), FileMode.Create);
+            var xmlWriter = XmlWriter.Create(fileStream, settings);
             xmlWriter.WriteStartDocument();
             xmlWriter.WriteStartElement("hotkeys");
-            foreach (Hotkey hotkey in Hotkeys)
+            foreach (var hotkey in _hotkeys)
             {
                 writerHotkey.Serialize(xmlWriter, hotkey);
             }
@@ -212,7 +212,7 @@ public class MonitorSwitcherGui : Form
 
     private Hotkey? FindHotkey(HotkeyCtrl? ctrl)
     {
-        foreach (var hotkey in Hotkeys)
+        foreach (var hotkey in _hotkeys)
         {
             if (hotkey.hotkeyCtrl == ctrl)
             {
@@ -225,7 +225,7 @@ public class MonitorSwitcherGui : Form
 
     private Hotkey? FindHotkey(string name)
     {
-        foreach (var hotkey in Hotkeys)
+        foreach (var hotkey in _hotkeys)
         {
             if (hotkey.profileName == name)
             {
@@ -240,13 +240,13 @@ public class MonitorSwitcherGui : Form
     {
         ToolStripItem newMenuItem;
 
-        trayMenu.Items.Clear();
+        _trayMenu.Items.Clear();
 
-        trayMenu.Items.Add("Load Profile").Enabled = false;
-        trayMenu.Items.Add("-");
+        _trayMenu.Items.Add("Load Profile").Enabled = false;
+        _trayMenu.Items.Add("-");
 
         // Find all profile files
-        string[] profiles = Directory.GetFiles(settingsDirectoryProfiles, "*.xml")
+        string[] profiles = Directory.GetFiles(_settingsDirectoryProfiles, "*.xml")
             .Select(filename =>
             {
                 var profile = Path.GetFileNameWithoutExtension(filename);
@@ -258,21 +258,21 @@ public class MonitorSwitcherGui : Form
         // Add to load menu
         foreach (string profile in profiles)
         {
-            newMenuItem = trayMenu.Items.Add(profile);
+            newMenuItem = _trayMenu.Items.Add(profile);
             newMenuItem.Tag = profile;
             newMenuItem.Click += OnMenuLoad;
             newMenuItem.ImageIndex = 3;
         }
 
         // Menu for saving items
-        trayMenu.Items.Add("-");
+        _trayMenu.Items.Add("-");
         var saveMenu = new ToolStripMenuItem("Save Profile")
         {
             ImageIndex = 4,
             DropDown = new ToolStripDropDownMenu()
         };
-        saveMenu.DropDown.ImageList = trayMenu.ImageList;
-        trayMenu.Items.Add(saveMenu);
+        saveMenu.DropDown.ImageList = _trayMenu.ImageList;
+        _trayMenu.Items.Add(saveMenu);
 
         newMenuItem = saveMenu.DropDownItems.Add("New Profile...");
         newMenuItem.Click += OnMenuSaveAs;
@@ -285,8 +285,8 @@ public class MonitorSwitcherGui : Form
             ImageIndex = 1,
             DropDown = new ToolStripDropDownMenu()
         };
-        deleteMenu.DropDown.ImageList = trayMenu.ImageList;
-        trayMenu.Items.Add(deleteMenu);
+        deleteMenu.DropDown.ImageList = _trayMenu.ImageList;
+        _trayMenu.Items.Add(deleteMenu);
 
         // Menu for hotkeys
         var hotkeyMenu = new ToolStripMenuItem("Set Hotkeys")
@@ -294,8 +294,8 @@ public class MonitorSwitcherGui : Form
             ImageIndex = 7,
             DropDown = new ToolStripDropDownMenu()
         };
-        hotkeyMenu.DropDown.ImageList = trayMenu.ImageList;
-        trayMenu.Items.Add(hotkeyMenu);
+        hotkeyMenu.DropDown.ImageList = _trayMenu.ImageList;
+        _trayMenu.Items.Add(hotkeyMenu);
 
         // Add to delete, save and hotkey menus
         foreach (string profile in profiles)
@@ -324,21 +324,21 @@ public class MonitorSwitcherGui : Form
             newMenuItem.ImageIndex = 3;
         }
 
-        trayMenu.Items.Add("-");
-        newMenuItem = trayMenu.Items.Add("Turn Off All Monitors");
+        _trayMenu.Items.Add("-");
+        newMenuItem = _trayMenu.Items.Add("Turn Off All Monitors");
         newMenuItem.Click += OnEnergySaving;
         newMenuItem.ImageIndex = 0;
 
-        trayMenu.Items.Add("-");
-        newMenuItem = trayMenu.Items.Add("About");
+        _trayMenu.Items.Add("-");
+        newMenuItem = _trayMenu.Items.Add("About");
         newMenuItem.Click += OnMenuAbout;
         newMenuItem.ImageIndex = 6;
 
-        newMenuItem = trayMenu.Items.Add("Donate");
+        newMenuItem = _trayMenu.Items.Add("Donate");
         newMenuItem.Click += OnMenuDonate;
         newMenuItem.ImageIndex = 8;
 
-        newMenuItem = trayMenu.Items.Add("Exit");
+        newMenuItem = _trayMenu.Items.Add("Exit");
         newMenuItem.Click += OnMenuExit;
         newMenuItem.ImageIndex = 2;
     }
@@ -349,12 +349,12 @@ public class MonitorSwitcherGui : Form
         {
             throw new NullReferenceException("Profile name is null");
         }
-        return Path.Combine(settingsDirectoryProfiles, profileName + ".xml");
+        return Path.Combine(_settingsDirectoryProfiles, profileName + ".xml");
     }
 
     private string SettingsFileFromName(string name)
     {
-        return Path.Combine(settingsDirectory, name + ".xml");
+        return Path.Combine(_settingsDirectory, name + ".xml");
     }
 
     private void OnEnergySaving(object? sender, EventArgs e)
@@ -388,10 +388,10 @@ public class MonitorSwitcherGui : Form
             {
                 if (!DisplaySettings.SaveDisplaySettings(ProfileFileFromName(profileName)))
                 {
-                    trayIcon.BalloonTipTitle = "Failed to save Multi Monitor profile";
-                    trayIcon.BalloonTipText = "MonitorSwitcher was unable to save the current profile to a new profile with name\"" + profileName + "\"";
-                    trayIcon.BalloonTipIcon = ToolTipIcon.Error;
-                    trayIcon.ShowBalloonTip(5000);
+                    _trayIcon.BalloonTipTitle = "Failed to save Multi Monitor profile";
+                    _trayIcon.BalloonTipText = "MonitorSwitcher was unable to save the current profile to a new profile with name\"" + profileName + "\"";
+                    _trayIcon.BalloonTipIcon = ToolTipIcon.Error;
+                    _trayIcon.ShowBalloonTip(5000);
                 }
             }
         }
@@ -409,12 +409,12 @@ public class MonitorSwitcherGui : Form
                 if (!hotkey.RemoveKey)
                 {
                     hotkey.profileName = profileName;
-                    Hotkeys.Add(hotkey);
+                    _hotkeys.Add(hotkey);
                 }
             }
             else if (hotkey != null && hotkey.RemoveKey)
             {
-                Hotkeys.Remove(hotkey);
+                _hotkeys.Remove(hotkey);
             }
 
             KeyHooksRefresh();
@@ -426,10 +426,10 @@ public class MonitorSwitcherGui : Form
     {
         if (!DisplaySettings.LoadDisplaySettings(ProfileFileFromName(name)))
         {
-            trayIcon.BalloonTipTitle = "Failed to load Multi Monitor profile";
-            trayIcon.BalloonTipText = "MonitorSwitcher was unable to load the previously saved profile \"" + name + "\"";
-            trayIcon.BalloonTipIcon = ToolTipIcon.Error;
-            trayIcon.ShowBalloonTip(5000);
+            _trayIcon.BalloonTipTitle = "Failed to load Multi Monitor profile";
+            _trayIcon.BalloonTipText = "MonitorSwitcher was unable to load the previously saved profile \"" + name + "\"";
+            _trayIcon.BalloonTipIcon = ToolTipIcon.Error;
+            _trayIcon.ShowBalloonTip(5000);
         }
     }
 
@@ -445,10 +445,10 @@ public class MonitorSwitcherGui : Form
         var filename = ProfileFileFromName(profileName);
         if (!DisplaySettings.SaveDisplaySettings(filename))
         {
-            trayIcon.BalloonTipTitle = "Failed to save Multi Monitor profile";
-            trayIcon.BalloonTipText = $"MonitorSwitcher was unable to save the current profile to name \"{profileName}\"";
-            trayIcon.BalloonTipIcon = ToolTipIcon.Error;
-            trayIcon.ShowBalloonTip(5000);
+            _trayIcon.BalloonTipTitle = "Failed to save Multi Monitor profile";
+            _trayIcon.BalloonTipText = $"MonitorSwitcher was unable to save the current profile to name \"{profileName}\"";
+            _trayIcon.BalloonTipIcon = ToolTipIcon.Error;
+            _trayIcon.ShowBalloonTip(5000);
         }
     }
 
@@ -477,7 +477,7 @@ public class MonitorSwitcherGui : Form
             {
                 throw new NullReferenceException("ShowContextMenu method not found on type NotifyIcon");
             }
-            methodInfo.Invoke(trayIcon, null);
+            methodInfo.Invoke(_trayIcon, null);
         }
     }
 
@@ -506,7 +506,7 @@ public class MonitorSwitcherGui : Form
         if (isDisposing)
         {
             // Release the icon resource.
-            trayIcon.Dispose();
+            _trayIcon.Dispose();
         }
 
         base.Dispose(isDisposing);
