@@ -259,6 +259,7 @@ public class MonitorSwitcherGui : Form
         foreach (string profile in profiles)
         {
             newMenuItem = trayMenu.Items.Add(profile);
+            newMenuItem.Tag = profile;
             newMenuItem.Click += OnMenuLoad;
             newMenuItem.ImageIndex = 3;
         }
@@ -300,10 +301,12 @@ public class MonitorSwitcherGui : Form
         foreach (string profile in profiles)
         {
             newMenuItem = saveMenu.DropDownItems.Add(profile);
+            newMenuItem.Tag = profile;
             newMenuItem.Click += OnMenuSave;
             newMenuItem.ImageIndex = 3;
 
             newMenuItem = deleteMenu.DropDownItems.Add(profile);
+            newMenuItem.Tag = profile;
             newMenuItem.Click += OnMenuDelete;
             newMenuItem.ImageIndex = 3;
 
@@ -396,7 +399,7 @@ public class MonitorSwitcherGui : Form
 
     private void OnHotkeySet(object? sender, EventArgs e)
     {
-        var profileName = GetMenuItemTagText(sender);
+        var profileName = GetProfileName(sender);
         var hotkey = FindHotkey(profileName);
         bool isNewHotkey = hotkey == null;
         if (HotkeySetting("Set Hotkey for Monitor Profile '" + profileName + "'", ref hotkey) == DialogResult.OK)
@@ -432,13 +435,13 @@ public class MonitorSwitcherGui : Form
 
     private void OnMenuLoad(object? sender, EventArgs e)
     {
-        var profileName = GetMenuItemText(sender);
+        var profileName = GetProfileName(sender);
         LoadProfile(profileName);
     }
 
     private void OnMenuSave(object? sender, EventArgs e)
     {
-        var profileName = GetMenuItemText(sender);
+        var profileName = GetProfileName(sender);
         var filename = ProfileFileFromName(profileName);
         if (!DisplaySettings.SaveDisplaySettings(filename))
         {
@@ -451,21 +454,15 @@ public class MonitorSwitcherGui : Form
 
     private void OnMenuDelete(object? sender, EventArgs e)
     {
-        var profileName = GetMenuItemText(sender);
+        var profileName = GetProfileName(sender);
         var filename = ProfileFileFromName(profileName);
         File.Delete(filename);
     }
 
-    private static string GetMenuItemText(object? sender)
-    {
-        return ((ToolStripMenuItem?)sender)?.Text
-            ?? throw new NullReferenceException("Profile name is null");
-    }
-
-    private static string GetMenuItemTagText(object? sender)
+    private static string GetProfileName(object? sender)
     {
         return ((ToolStripMenuItem?)sender)?.Tag as string
-               ?? throw new NullReferenceException("Profile name is null");
+            ?? throw new NullReferenceException("Profile name is null");
     }
 
     private void OnTrayClick(object? sender, MouseEventArgs e)
