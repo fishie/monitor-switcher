@@ -294,7 +294,7 @@ public class CcdWrapper
         public LUID adapterId;
         public uint id;
         public uint modeInfoIdx;
-        public DisplayConfigVideoOutputTechnology outputTechnology; 
+        public DisplayConfigVideoOutputTechnology outputTechnology;
         public DisplayConfigRotation rotation;
         public DisplayConfigScaling scaling;
         public DisplayConfigRational refreshRate;
@@ -459,15 +459,13 @@ public class CcdWrapper
     [Serializable]
     public struct MonitorAdditionalInfo
     {
-        //public string monitorDevicePath { get; set; }
-        //public string monitorFriendlyDevice { get; set; }
         public ushort manufactureId { get; set; }
         public ushort productCodeId { get; set; }
         public bool valid { get; set; }
 
 
         [XmlElement(ElementName = "monitorDevicePath")]
-        public string? monitorDevicePath64
+        public string? MonitorDevicePath64
         {
             get
             {
@@ -494,7 +492,7 @@ public class CcdWrapper
         public string? monitorDevicePath;
 
         [XmlElement(ElementName = "monitorFriendlyDevice")]
-        public string? monitorFriendlyDevice64
+        public string? MonitorFriendlyDevice64
         {
             get
             {
