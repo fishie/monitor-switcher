@@ -47,12 +47,12 @@ public class MonitorSwitcherGui : Form
         BuildTrayMenu();
     }
 
-    private Bitmap LoadIcon(string filename) => new Icon(GetType(), filename).ToBitmap();
+    private Bitmap LoadIcon(string relativePath) => new Icon(GetType(), relativePath).ToBitmap();
 
-    private static Image LoadImage(string filename)
+    private Image LoadImage(string relativePath)
     {
-        using var stream = Assembly.GetExecutingAssembly()
-            .GetManifestResourceStream($"{typeof(MonitorSwitcherGui).Namespace}.{filename}");
+        var assembly = Assembly.GetExecutingAssembly();
+        using var stream = assembly.GetManifestResourceStream(GetType(), relativePath);
 
         if (stream == null)
         {
