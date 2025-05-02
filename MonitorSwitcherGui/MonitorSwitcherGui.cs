@@ -17,57 +17,20 @@ public class MonitorSwitcherGui : Form
 
     public MonitorSwitcherGui(string customSettingsDirectory)
     {
-        // Initialize settings directory
         _settingsDirectory = DisplaySettings.GetSettingsDirectory(customSettingsDirectory);
         _settingsDirectoryProfiles = DisplaySettings.GetSettingsProfileDirectory(_settingsDirectory);
-
-        if (!Directory.Exists(_settingsDirectory))
-            Directory.CreateDirectory(_settingsDirectory);
-        if (!Directory.Exists(_settingsDirectoryProfiles))
-            Directory.CreateDirectory(_settingsDirectoryProfiles);
-
-        // Initialize Hotkey list before loading settings
-        _hotkeys = new List<Hotkey>();
-
-        // Load all settings
-        LoadSettings();
-
-        // Refresh Hotkey Hooks
-        KeyHooksRefresh();
-
-        // Build up context menu
-        _trayMenu = new ContextMenuStrip
-        {
-            ImageList = new ImageList
-            {
-                Images =
-                {
-                    new Icon(GetType(), "Icons.MainIcon.ico"),
-                    new Icon(GetType(), "Icons.DeleteProfile.ico"),
-                    new Icon(GetType(), "Icons.Exit.ico"),
-                    new Icon(GetType(), "Icons.Profile.ico"),
-                    new Icon(GetType(), "Icons.SaveProfile.ico"),
-                    new Icon(GetType(), "Icons.NewProfile.ico"),
-                    new Icon(GetType(), "Icons.About.ico"),
-                    new Icon(GetType(), "Icons.Hotkey.ico"),
-                }
-            }
-        };
-
-        // add paypal png logo
-        var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream("MonitorSwitcherGui.Icons.PayPal.png");
-        if (stream == null)
-        {
-            throw new Exception(
-                "No resources were specified during compilation or the resource is not visible to the caller");
-        }
-        _trayMenu.ImageList.Images.Add(Image.FromStream(stream));
-
-        // finally build tray menu
-        BuildTrayMenu();
-
-        // Create tray icon
+        _hotkeys = [];
+        _trayMenu = new ContextMenuStrip { ImageList = new ImageList() };
+        _trayMenu.ImageList.Images.AddRange(
+            LoadIcon("Icons.MainIcon.ico"),
+            LoadIcon("Icons.DeleteProfile.ico"),
+            LoadIcon("Icons.Exit.ico"),
+            LoadIcon("Icons.Profile.ico"),
+            LoadIcon("Icons.SaveProfile.ico"),
+            LoadIcon("Icons.NewProfile.ico"),
+            LoadIcon("Icons.About.ico"),
+            LoadIcon("Icons.Hotkey.ico"),
+            LoadImage("Icons.PayPal.png"));
         _trayIcon = new NotifyIcon
         {
             Text = "Monitor Profile Switcher",
@@ -76,6 +39,28 @@ public class MonitorSwitcherGui : Form
             Visible = true,
         };
         _trayIcon.MouseUp += OnTrayClick;
+
+        Directory.CreateDirectory(_settingsDirectory);
+        Directory.CreateDirectory(_settingsDirectoryProfiles);
+        LoadSettings();
+        KeyHooksRefresh();
+        BuildTrayMenu();
+    }
+
+    private Bitmap LoadIcon(string filename) => new Icon(GetType(), filename).ToBitmap();
+
+    private static Image LoadImage(string filename)
+    {
+        using var stream = Assembly.GetExecutingAssembly()
+            .GetManifestResourceStream($"{typeof(MonitorSwitcherGui).Namespace}.{filename}");
+
+        if (stream == null)
+        {
+            throw new Exception(
+                "No resources were specified during compilation or the resource is not visible to the caller");
+        }
+
+        return Image.FromStream(stream);
     }
 
     private void KeyHooksRefresh()
