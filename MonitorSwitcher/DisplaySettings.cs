@@ -201,15 +201,14 @@ public static class DisplaySettings
         // Loading the xml file
         Log.Debug("Parsing XML file");
         var xmlReader = XmlReader.Create(filename);
-        xmlReader.Read();
-        while (true)
+
+        while (xmlReader.Read())
         {
             Log.Debug("\tXML Element: " + xmlReader.Name);
             if (xmlReader.Name == "DisplayConfigPathInfo" && xmlReader.IsStartElement())
             {
                 var pathInfo = readerPath.Deserialize<CcdWrapper.DisplayConfigPathInfo>(xmlReader);
                 pathInfoList.Add(pathInfo);
-                continue;
             }
             else if (xmlReader.Name == "modeInfo" && (xmlReader.IsStartElement()))
             {
@@ -236,19 +235,12 @@ public static class DisplaySettings
                 Log.Debug("\t\t\tmodeInfo.infoType = " + modeInfo.infoType);
 
                 modeInfoList.Add(modeInfo);
-                continue;
             }
             else if (xmlReader.Name == "MonitorAdditionalInfo" && xmlReader.IsStartElement())
             {
                 Log.Debug("\t\tReading additional information");
                 var additionalInfo = readerAdditionalInfo.Deserialize<CcdWrapper.MonitorAdditionalInfo>(xmlReader);
                 additionalInfoList.Add(additionalInfo);
-                continue;
-            }
-
-            if (!xmlReader.Read())
-            {
-                break;
             }
         }
         xmlReader.Close();
@@ -256,17 +248,8 @@ public static class DisplaySettings
 
         // Convert C# lists to simply array
         Log.Debug("Converting to simple arrays for API compatibility");
-        var pathInfoArray = new CcdWrapper.DisplayConfigPathInfo[pathInfoList.Count];
-        for (int iPathInfo = 0; iPathInfo < pathInfoList.Count; iPathInfo++)
-        {
-            pathInfoArray[iPathInfo] = pathInfoList[iPathInfo];
-        }
-
-        var modeInfoArray = new CcdWrapper.DisplayConfigModeInfo[modeInfoList.Count];
-        for (int iModeInfo = 0; iModeInfo < modeInfoList.Count; iModeInfo++)
-        {
-            modeInfoArray[iModeInfo] = modeInfoList[iModeInfo];
-        }
+        var pathInfoArray = pathInfoList.ToArray();
+        var modeInfoArray = modeInfoList.ToArray();
 
         // Get current display settings
         Log.Debug("Getting current display settings");
