@@ -37,14 +37,8 @@ public static class DisplaySettings
             if (status == 0)
             {
                 // cleanup of modeInfo bad elements
-                int validCount = 0;
-                foreach (var modeInfo in modeInfoArray)
-                {
-                    if (modeInfo.infoType != CcdWrapper.DisplayConfigModeInfoType.Zero)
-                    {   // count number of valid mode Infos
-                        validCount++;
-                    }
-                }
+                int validCount = modeInfoArray.Count(modeInfo =>
+                    modeInfo.infoType != CcdWrapper.DisplayConfigModeInfoType.Zero);
                 if (validCount > 0)
                 {   // only cleanup if there is at least one valid element found
                     var tempInfoArray = new CcdWrapper.DisplayConfigModeInfo[modeInfoArray.Length];
@@ -206,7 +200,7 @@ public static class DisplaySettings
 
         // Loading the xml file
         Log.Debug("Parsing XML file");
-        XmlReader xmlReader = XmlReader.Create(filename);
+        var xmlReader = XmlReader.Create(filename);
         xmlReader.Read();
         while (true)
         {
@@ -366,8 +360,10 @@ public static class DisplaySettings
             uint numModeInfoArrayElements = (uint)modeInfoArray.Length;
 
             // First let's try without SdcFlags.AllowChanges
-            long status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
-                                                      CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig | CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization);
+            long status = CcdWrapper.SetDisplayConfig(
+                numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
+                CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig |
+                CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization);
 
             if (status != 0)
             {// try again with SdcFlags.AllowChanges

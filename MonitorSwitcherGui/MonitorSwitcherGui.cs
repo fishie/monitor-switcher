@@ -81,7 +81,7 @@ public class MonitorSwitcherGui : Form
             {
                 _hotkeys.Remove(hotkey);
             }
-            removeList.Clear();
+
             SaveSettings();
         }
 
@@ -96,11 +96,8 @@ public class MonitorSwitcherGui : Form
     public void KeyHook_KeyUp(object? sender, HandledEventArgs e)
     {
         var hotkeyCtrl = sender as HotkeyCtrl;
-        var hotkey = FindHotkey(hotkeyCtrl);
-        if (hotkey == null)
-        {
+        var hotkey = FindHotkey(hotkeyCtrl) ??
             throw new Exception("Hotkey could not be found");
-        }
         LoadProfile(hotkey.profileName);
         e.Handled = true;
     }
@@ -115,7 +112,9 @@ public class MonitorSwitcherGui : Form
 
         // Loading the xml file
         if (!File.Exists(SettingsFileFromName("Hotkeys")))
+        {
             return;
+        }
 
         var readerHotkey = new XmlSerializer(typeof(Hotkey));
 

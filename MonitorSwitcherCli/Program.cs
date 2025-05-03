@@ -12,7 +12,7 @@ Log.Logger = new LoggerConfiguration()
 bool validCommand = false;
 bool matchAdapterIds = true;
 
-foreach (string arg in args)
+foreach (var arg in args)
 {
     string[] argElements = arg.Split(':', 2);
 
@@ -65,5 +65,4 @@ if (!validCommand)
             MonitorSwitcher.exe -load:MyProfile.xml
             MonitorSwitcher.exe -debug -load:MyProfile.xml
         """);
-    Console.ReadKey();
 }

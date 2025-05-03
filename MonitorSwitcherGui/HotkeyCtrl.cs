@@ -38,7 +38,7 @@ public class HotkeyCtrl : IMessageFilter
     [XmlIgnore]
     private int id;
     [XmlIgnore]
-    private bool registered = false;
+    private bool registered;
     [XmlIgnore]
     private Control? windowControl;
 
