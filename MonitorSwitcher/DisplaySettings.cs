@@ -284,42 +284,34 @@ public static class DisplaySettings
             Log.Debug("Matching of adapter IDs for modeInfo");
             for (int iModeInfo = 0; iModeInfo < modeInfoArray.Length; iModeInfo++)
             {
-                for (int iPathInfo = 0; iPathInfo < pathInfoArray.Length; iPathInfo++)
+                if (modeInfoArray[iModeInfo].infoType != CcdWrapper.DisplayConfigModeInfoType.Target)
                 {
-                    Log.Debug("\t---");
-                    Log.Debug("\tIndex Mode = " + iModeInfo);
-                    Log.Debug("\tIndex Path = " + iPathInfo);
-                    Log.Debug("\tmodeInfo.id = " + modeInfoArray[iModeInfo].id);
-                    Log.Debug("\tpathInfo.id = " + pathInfoArray[iPathInfo].targetInfo.id);
-                    Log.Debug("\tmodeInfo.infoType = " + modeInfoArray[iModeInfo].infoType);
-                    if ((modeInfoArray[iModeInfo].id == pathInfoArray[iPathInfo].targetInfo.id) &&
-                        (modeInfoArray[iModeInfo].infoType == CcdWrapper.DisplayConfigModeInfoType.Target))
+                    continue;
+                }
+
+                foreach (var pathInfo in pathInfoArray)
+                {
+                    if (modeInfoArray[iModeInfo].id != pathInfo.targetInfo.id)
                     {
-                        Log.Debug("\t\tTarget adapter id found, checking for source modeInfo and adapterID");
-                        // We found target adapter id, now lets look for the source modeInfo and adapterID
-                        for (int iModeInfoSource = 0; iModeInfoSource < modeInfoArray.Length; iModeInfoSource++)
-                        {
-                            Log.Debug("\t\t---");
-                            Log.Debug("\t\tIndex = " + iModeInfoSource);
-                            Log.Debug("\t\tmodeInfo.id Source = " + modeInfoArray[iModeInfoSource].id);
-                            Log.Debug("\t\tpathInfo.sourceInfo.id = " + pathInfoArray[iPathInfo].sourceInfo.id);
-                            Log.Debug("\t\tmodeInfo.adapterId = " + modeInfoArray[iModeInfo].adapterId.LowPart);
-                            Log.Debug("\t\tmodeInfo.adapterId Source = " + modeInfoArray[iModeInfoSource].adapterId.LowPart);
-                            Log.Debug("\t\tmodeInfo.infoType Source = " + modeInfoArray[iModeInfoSource].infoType);
-                            if ((modeInfoArray[iModeInfoSource].id == pathInfoArray[iPathInfo].sourceInfo.id) &&
-                                (modeInfoArray[iModeInfoSource].adapterId.LowPart == modeInfoArray[iModeInfo].adapterId.LowPart) &&
-                                (modeInfoArray[iModeInfoSource].infoType == CcdWrapper.DisplayConfigModeInfoType.Source))
-                            {
-                                Log.Debug("\t\t!!! IDs are a match, taking adapter id from pathInfo !!!");
-                                modeInfoArray[iModeInfoSource].adapterId.LowPart = pathInfoArray[iPathInfo].sourceInfo.adapterId.LowPart;
-                                break;
-                            }
-                            Log.Debug("\t\t---");
-                        }
-                        modeInfoArray[iModeInfo].adapterId.LowPart = pathInfoArray[iPathInfo].targetInfo.adapterId.LowPart;
-                        break;
+                        continue;
                     }
-                    Log.Debug("\t---");
+
+                    Log.Debug("\t\tTarget adapter id found, checking for source modeInfo and adapterID");
+                    // We found target adapter id, now lets look for the source modeInfo and adapterID
+                    for (int iModeInfoSource = 0; iModeInfoSource < modeInfoArray.Length; iModeInfoSource++)
+                    {
+                        if (modeInfoArray[iModeInfoSource].id == pathInfo.sourceInfo.id &&
+                            modeInfoArray[iModeInfoSource].adapterId.LowPart == modeInfoArray[iModeInfo].adapterId.LowPart &&
+                            modeInfoArray[iModeInfoSource].infoType == CcdWrapper.DisplayConfigModeInfoType.Source)
+                        {
+                            Log.Debug("\t\t!!! IDs are a match, taking adapter id from pathInfo !!!");
+                            modeInfoArray[iModeInfoSource].adapterId.LowPart = pathInfo.sourceInfo.adapterId.LowPart;
+                            break;
+                        }
+                    }
+
+                    modeInfoArray[iModeInfo].adapterId.LowPart = pathInfo.targetInfo.adapterId.LowPart;
+                    break;
                 }
             }
             Log.Debug("Done matching of adapter IDs");
@@ -329,7 +321,7 @@ public static class DisplaySettings
         Log.Debug("Setting up final display settings to load");
 
         // debug output complete display settings
-        Log.Debug("\nDisplay settings to be loaded: ");
+        Log.Debug("Display settings to be loaded: ");
         Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
 
         uint numPathArrayElements = (uint)pathInfoArray.Length;
