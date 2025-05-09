@@ -201,7 +201,7 @@ public static class DisplaySettings
         Log.Debug("Parsing XML file");
         var xmlReader = XmlReader.Create(filename);
 
-        while (xmlReader.Read())
+        while (true)
         {
             Log.Debug("\tXML Element: " + xmlReader.Name);
             if (xmlReader.Name == "DisplayConfigPathInfo" && xmlReader.IsStartElement())
@@ -214,11 +214,11 @@ public static class DisplaySettings
             {
                 Log.Debug("\t\tReading modeInfo");
                 var modeInfo = new CcdWrapper.DisplayConfigModeInfo();
-                xmlReader.Read(); // ???
-                xmlReader.Read(); // ???
+                xmlReader.Read(); // Read id start tag
+                xmlReader.Read(); // Read id value
                 modeInfo.id = Convert.ToUInt32(xmlReader.Value);
-                xmlReader.Read(); // ???
-                xmlReader.Read(); // ???
+                xmlReader.Read(); // Read id end tag
+                xmlReader.Read(); // Read LUID start tag
                 modeInfo.adapterId = readerModeAdapterId.Deserialize<CcdWrapper.LUID>(xmlReader);
                 modeInfo.infoType = readerModeInfoType.Deserialize<CcdWrapper.DisplayConfigModeInfoType>(xmlReader);
                 if (modeInfo.infoType == CcdWrapper.DisplayConfigModeInfoType.Target)
@@ -241,6 +241,10 @@ public static class DisplaySettings
                 Log.Debug("\t\tReading additional information");
                 var additionalInfo = readerAdditionalInfo.Deserialize<CcdWrapper.MonitorAdditionalInfo>(xmlReader);
                 additionalInfoList.Add(additionalInfo);
+            }
+            else if (!xmlReader.Read())
+            {
+                break;
             }
         }
 
