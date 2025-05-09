@@ -294,8 +294,6 @@ public static class DisplaySettings
                     continue;
                 }
 
-
-
                 var pathInfos = pathInfoArray.Where(pathInfo => pathInfo.targetInfo.id == modeInfoArray[i].id).ToList();
                 if (pathInfos.Count == 0)
                 {
