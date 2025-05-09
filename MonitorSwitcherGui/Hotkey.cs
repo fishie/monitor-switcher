@@ -12,13 +12,7 @@ public class Hotkey
     public Keys Key;
     public string? profileName;
 
-    public readonly HotkeyCtrl hotkeyCtrl;
-
-    public Hotkey()
-    {
-        hotkeyCtrl = new HotkeyCtrl();
-        RemoveKey = false;
-    }
+    public readonly HotkeyCtrl hotkeyCtrl = new();
 
     public void RegisterHotkey(MonitorSwitcherGui parent)
     {

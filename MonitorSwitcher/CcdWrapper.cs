@@ -333,19 +333,7 @@ public static class CcdWrapper
 
     private enum DisplayConfigDeviceInfoType : uint
     {
-        GetSourceName = 1,
-        GetTargetName = 2,
-        GetTargetPreferredMode = 3,
-        GetAdapterName = 4,
-        SetTargetPersistence = 5,
-        GetTargetBaseType = 6,
-        GetSupportVirtualResolution = 7,
-        SetSupportVirtualResolution = 8,
-        AdvancedColorInfo = 9,
-        AdvancedColorState = 10,
-        SdrWhiteLevel = 11,
-        ForceUint32 = 0xFFFFFFFF,
-
+        GetTargetName = 2
     }
 
     /// <summary>
