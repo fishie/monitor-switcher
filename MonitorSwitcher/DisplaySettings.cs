@@ -183,73 +183,7 @@ public static class DisplaySettings
             return false;
         }
 
-        // Objects for deserialization of pathInfo and modeInfo classes
-        Log.Debug("Initializing objects for Serialization");
-        var readerAdditionalInfo = new XmlSerializer(typeof(CcdWrapper.MonitorAdditionalInfo));
-        var readerPath = new XmlSerializer(typeof(CcdWrapper.DisplayConfigPathInfo));
-        var readerModeTarget = new XmlSerializer(typeof(CcdWrapper.DisplayConfigTargetMode));
-        var readerModeSource = new XmlSerializer(typeof(CcdWrapper.DisplayConfigSourceMode));
-        var readerModeInfoType = new XmlSerializer(typeof(CcdWrapper.DisplayConfigModeInfoType));
-        var readerModeAdapterId = new XmlSerializer(typeof(CcdWrapper.LUID));
-
-        // Lists for storing the results
-        var pathInfoList = new List<CcdWrapper.DisplayConfigPathInfo>();
-        var modeInfoList = new List<CcdWrapper.DisplayConfigModeInfo>();
-        var additionalInfoList = new List<CcdWrapper.MonitorAdditionalInfo>();
-
-        // Loading the xml file
-        Log.Debug("Parsing XML file");
-        var xmlReader = XmlReader.Create(filename);
-
-        while (true)
-        {
-            Log.Debug("\tXML Element: " + xmlReader.Name);
-            if (xmlReader.Name == "DisplayConfigPathInfo" && xmlReader.IsStartElement())
-            {
-                Log.Debug("\t\tReading pathInfo");
-                var pathInfo = readerPath.Deserialize<CcdWrapper.DisplayConfigPathInfo>(xmlReader);
-                pathInfoList.Add(pathInfo);
-            }
-            else if (xmlReader.Name == "modeInfo" && xmlReader.IsStartElement())
-            {
-                Log.Debug("\t\tReading modeInfo");
-                var modeInfo = new CcdWrapper.DisplayConfigModeInfo();
-                xmlReader.Read(); // Read id start tag
-                xmlReader.Read(); // Read id value
-                modeInfo.id = Convert.ToUInt32(xmlReader.Value);
-                xmlReader.Read(); // Read id end tag
-                xmlReader.Read(); // Read LUID start tag
-                modeInfo.adapterId = readerModeAdapterId.Deserialize<CcdWrapper.LUID>(xmlReader);
-                modeInfo.infoType = readerModeInfoType.Deserialize<CcdWrapper.DisplayConfigModeInfoType>(xmlReader);
-                if (modeInfo.infoType == CcdWrapper.DisplayConfigModeInfoType.Target)
-                {
-                    modeInfo.targetMode = readerModeTarget.Deserialize<CcdWrapper.DisplayConfigTargetMode>(xmlReader);
-                }
-                else
-                {
-                    modeInfo.sourceMode = readerModeSource.Deserialize<CcdWrapper.DisplayConfigSourceMode>(xmlReader);
-                }
-                Log.Debug("\t\t\tmodeInfo.id = " + modeInfo.id);
-                Log.Debug("\t\t\tmodeInfo.adapterId (High Part) = " + modeInfo.adapterId.HighPart);
-                Log.Debug("\t\t\tmodeInfo.adapterId (Low Part) = " + modeInfo.adapterId.LowPart);
-                Log.Debug("\t\t\tmodeInfo.infoType = " + modeInfo.infoType);
-
-                modeInfoList.Add(modeInfo);
-            }
-            else if (xmlReader.Name == "MonitorAdditionalInfo" && xmlReader.IsStartElement())
-            {
-                Log.Debug("\t\tReading additional information");
-                var additionalInfo = readerAdditionalInfo.Deserialize<CcdWrapper.MonitorAdditionalInfo>(xmlReader);
-                additionalInfoList.Add(additionalInfo);
-            }
-            else if (!xmlReader.Read())
-            {
-                break;
-            }
-        }
-
-        xmlReader.Close();
-        Log.Debug("Parsing of XML file successful");
+        ParseXmlFile(filename, out var pathInfoList, out var modeInfoList, out var additionalInfoList);
 
         // Convert C# lists to simple arrays
         Log.Debug("Converting to simple arrays for API compatibility");
@@ -476,6 +410,75 @@ public static class DisplaySettings
         }
 
         return true;
+    }
+
+    private static void ParseXmlFile(string filename,
+        out List<CcdWrapper.DisplayConfigPathInfo> pathInfoList,
+        out List<CcdWrapper.DisplayConfigModeInfo> modeInfoList,
+        out List<CcdWrapper.MonitorAdditionalInfo> additionalInfoList)
+    {
+        Log.Debug("Parsing XML file");
+        var xmlReader = XmlReader.Create(filename);
+        var readerAdditionalInfo = new XmlSerializer(typeof(CcdWrapper.MonitorAdditionalInfo));
+        var readerPath = new XmlSerializer(typeof(CcdWrapper.DisplayConfigPathInfo));
+        var readerModeTarget = new XmlSerializer(typeof(CcdWrapper.DisplayConfigTargetMode));
+        var readerModeSource = new XmlSerializer(typeof(CcdWrapper.DisplayConfigSourceMode));
+        var readerModeInfoType = new XmlSerializer(typeof(CcdWrapper.DisplayConfigModeInfoType));
+        var readerModeAdapterId = new XmlSerializer(typeof(CcdWrapper.LUID));
+
+        pathInfoList = [];
+        modeInfoList = [];
+        additionalInfoList = [];
+
+        while (true)
+        {
+            Log.Debug("\tXML Element: " + xmlReader.Name);
+            if (xmlReader.Name == "DisplayConfigPathInfo" && xmlReader.IsStartElement())
+            {
+                Log.Debug("\t\tReading pathInfo");
+                var pathInfo = readerPath.Deserialize<CcdWrapper.DisplayConfigPathInfo>(xmlReader);
+                pathInfoList.Add(pathInfo);
+            }
+            else if (xmlReader.Name == "modeInfo" && xmlReader.IsStartElement())
+            {
+                Log.Debug("\t\tReading modeInfo");
+                var modeInfo = new CcdWrapper.DisplayConfigModeInfo();
+                xmlReader.Read(); // Read id start tag
+                xmlReader.Read(); // Read id value
+                modeInfo.id = Convert.ToUInt32(xmlReader.Value);
+                xmlReader.Read(); // Read id end tag
+                xmlReader.Read(); // Read LUID start tag
+                modeInfo.adapterId = readerModeAdapterId.Deserialize<CcdWrapper.LUID>(xmlReader);
+                modeInfo.infoType = readerModeInfoType.Deserialize<CcdWrapper.DisplayConfigModeInfoType>(xmlReader);
+                if (modeInfo.infoType == CcdWrapper.DisplayConfigModeInfoType.Target)
+                {
+                    modeInfo.targetMode = readerModeTarget.Deserialize<CcdWrapper.DisplayConfigTargetMode>(xmlReader);
+                }
+                else
+                {
+                    modeInfo.sourceMode = readerModeSource.Deserialize<CcdWrapper.DisplayConfigSourceMode>(xmlReader);
+                }
+                Log.Debug("\t\t\tmodeInfo.id = " + modeInfo.id);
+                Log.Debug("\t\t\tmodeInfo.adapterId (High Part) = " + modeInfo.adapterId.HighPart);
+                Log.Debug("\t\t\tmodeInfo.adapterId (Low Part) = " + modeInfo.adapterId.LowPart);
+                Log.Debug("\t\t\tmodeInfo.infoType = " + modeInfo.infoType);
+
+                modeInfoList.Add(modeInfo);
+            }
+            else if (xmlReader.Name == "MonitorAdditionalInfo" && xmlReader.IsStartElement())
+            {
+                Log.Debug("\t\tReading additional information");
+                var additionalInfo = readerAdditionalInfo.Deserialize<CcdWrapper.MonitorAdditionalInfo>(xmlReader);
+                additionalInfoList.Add(additionalInfo);
+            }
+            else if (!xmlReader.Read())
+            {
+                break;
+            }
+        }
+
+        xmlReader.Close();
+        Log.Debug("Parsing of XML file successful");
     }
 
     public static string PrintDisplaySettings(CcdWrapper.DisplayConfigPathInfo[] pathInfoArray, CcdWrapper.DisplayConfigModeInfo[] modeInfoArray)

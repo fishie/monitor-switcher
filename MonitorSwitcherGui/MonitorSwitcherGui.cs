@@ -318,18 +318,18 @@ public class MonitorSwitcherGui : Form
         return Path.Combine(_settingsDirectory, name + ".xml");
     }
 
-    private void OnEnergySaving(object? sender, EventArgs e)
+    private static void OnEnergySaving(object? sender, EventArgs e)
     {
         Thread.Sleep(500); // wait for 500 milliseconds to give the user the chance to leave the mouse alone
         SendMessageApi.PostMessage(new IntPtr(SendMessageApi.HWND_BROADCAST), SendMessageApi.WM_SYSCOMMAND, new IntPtr(SendMessageApi.SC_MONITORPOWER), new IntPtr(SendMessageApi.MONITOR_OFF));
     }
 
-    private void OnMenuAbout(object? sender, EventArgs e)
+    private static void OnMenuAbout(object? sender, EventArgs e)
     {
         MessageBox.Show("Monitor Profile Switcher by Martin Krämer \n(MartinKraemer84@gmail.com)\nVersion 0.9.0.0\nCopyright 2013-2017 \n\nhttps://sourceforge.net/projects/monitorswitcher/", "About Monitor Profile Switcher", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
-    private void OnMenuDonate(object? sender, EventArgs e)
+    private static void OnMenuDonate(object? sender, EventArgs e)
     {
         Process.Start("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y329BPYNKDTLC");
     }
