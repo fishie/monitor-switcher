@@ -160,6 +160,7 @@ public static class DisplaySettings
     public static bool LoadDisplaySettings(string filename, bool matchAdapterIds = true)
     {
         Log.Debug("Loading display settings from file: {Filename}", filename);
+
         if (!File.Exists(filename))
         {
             Log.Error("Failed to load display settings because file does not exist: {Filename}", filename);
@@ -183,56 +184,7 @@ public static class DisplaySettings
 
         if (matchAdapterIds)
         {
-            // For some reason the adapterID parameter changes upon system restart, all other parameters however, especially the ID remain constant.
-            // We check the loaded settings against the current settings replacing the adapterID with the other parameters
-            Log.Debug("Matching of adapter IDs for pathInfo");
-            for (var i = 0; i < pathInfoArray.Length; i++)
-            {
-                var matches = pathInfoArrayCurrent
-                    .Where(current => current.sourceInfo.id == pathInfoArray[i].sourceInfo.id &&
-                        current.targetInfo.id == pathInfoArray[i].targetInfo.id)
-                    .ToList();
-                if (matches.Count == 0)
-                {
-                    continue;
-                }
-
-                var current = matches.Single();
-                pathInfoArray[i].sourceInfo.adapterId.LowPart = current.sourceInfo.adapterId.LowPart;
-                pathInfoArray[i].targetInfo.adapterId.LowPart = current.targetInfo.adapterId.LowPart;
-            }
-
-            // Same again for modeInfo, however we get the required adapterId information from the pathInfoArray
-            Log.Debug("Matching of adapter IDs for modeInfo");
-            for (var i = 0; i < modeInfoArray.Length; i++)
-            {
-                if (modeInfoArray[i].infoType != CcdWrapper.DisplayConfigModeInfoType.Target)
-                {
-                    continue;
-                }
-
-                var pathInfos = pathInfoArray.Where(pathInfo => pathInfo.targetInfo.id == modeInfoArray[i].id).ToList();
-                if (pathInfos.Count == 0)
-                {
-                    continue;
-                }
-                var pathInfo = pathInfos.Single();
-                modeInfoArray[i].adapterId.LowPart = pathInfo.targetInfo.adapterId.LowPart;
-
-                for (var j = 0; j < modeInfoArray.Length; j++)
-                {
-                    if (modeInfoArray[j].id == pathInfo.sourceInfo.id &&
-                        modeInfoArray[j].adapterId.LowPart == modeInfoArray[i].adapterId.LowPart &&
-                        modeInfoArray[j].infoType == CcdWrapper.DisplayConfigModeInfoType.Source)
-                    {
-                        Log.Debug("\t\t!!! IDs are a match, taking adapter id from pathInfo !!!");
-                        modeInfoArray[j].adapterId.LowPart = pathInfo.sourceInfo.adapterId.LowPart;
-                        break;
-                    }
-                }
-            }
-
-            Log.Debug("Done matching of adapter IDs");
+            MatchAdapterIds(pathInfoArray, pathInfoArrayCurrent, modeInfoArray);
         }
 
         // Set loaded display settings
@@ -259,137 +211,152 @@ public static class DisplaySettings
                 CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig | CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization | CcdWrapper.SdcFlags.AllowChanges);
         }
 
-        if (status != 0)
+        if (status == 0)
         {
-            Log.Error("Failed to set display settings using default method, ERROR: {Status}", status);
+            return true;
+        }
 
-            if ((additionalInfoCurrent.Length > 0) && (additionalInfoList.Count > 0)) // only if present, e.g. new profile
+        Log.Error("Failed to set display settings using default method, ERROR: {Status}", status);
+
+        if ((additionalInfoCurrent.Length > 0) && (additionalInfoList.Count > 0)) // only if present, e.g. new profile
+        {
+            Log.Information("Trying alternative method");
+            // Restore original settings and adapter IDs
+            Log.Debug("Converting again to simple arrays for API compatibility");
+            pathInfoArray = pathInfoList.ToArray();
+            modeInfoArray = modeInfoList.ToArray();
+
+            Log.Debug("Alternative matching mode");
+            // For each modeInfo iterate over the current additional information, i.e. monitor names and paths, and find the one matching in the current setup
+            for (int iModeInfo = 0; iModeInfo < modeInfoArray.Length; iModeInfo++)
             {
-                Log.Information("Trying alternative method");
-                // Restore original settings and adapter IDs
-                Log.Debug("Converting again to simple arrays for API compatibility");
-                pathInfoArray = pathInfoList.ToArray();
-                modeInfoArray = modeInfoList.ToArray();
-
-                Log.Debug("Alternative matching mode");
-                // For each modeInfo iterate over the current additional information, i.e. monitor names and paths, and find the one matching in the current setup
-                for (int iModeInfo = 0; iModeInfo < modeInfoArray.Length; iModeInfo++)
+                for (int iAdditionalInfoCurrent = 0; iAdditionalInfoCurrent < additionalInfoCurrent.Length; iAdditionalInfoCurrent++)
                 {
-                    for (int iAdditionalInfoCurrent = 0; iAdditionalInfoCurrent < additionalInfoCurrent.Length; iAdditionalInfoCurrent++)
+                    if ((additionalInfoCurrent[iAdditionalInfoCurrent].monitorFriendlyDevice != null) && (additionalInfoList[iModeInfo].monitorFriendlyDevice != null))
                     {
-                        if ((additionalInfoCurrent[iAdditionalInfoCurrent].monitorFriendlyDevice != null) && (additionalInfoList[iModeInfo].monitorFriendlyDevice != null))
+                        if (additionalInfoCurrent[iAdditionalInfoCurrent].monitorFriendlyDevice == additionalInfoList[iModeInfo].monitorFriendlyDevice)
                         {
-                            if (additionalInfoCurrent[iAdditionalInfoCurrent].monitorFriendlyDevice == additionalInfoList[iModeInfo].monitorFriendlyDevice)
+                            CcdWrapper.LUID originalId = modeInfoArray[iModeInfo].adapterId;
+                            // now also find all other matching pathInfo modeInfos with that ID and change it
+                            for (int iPathInfo = 0; iPathInfo < pathInfoArray.Length; iPathInfo++)
                             {
-                                CcdWrapper.LUID originalId = modeInfoArray[iModeInfo].adapterId;
-                                // now also find all other matching pathInfo modeInfos with that ID and change it
-                                for (int iPathInfo = 0; iPathInfo < pathInfoArray.Length; iPathInfo++)
+                                if ((pathInfoArray[iPathInfo].targetInfo.adapterId.LowPart == originalId.LowPart) &&
+                                    (pathInfoArray[iPathInfo].targetInfo.adapterId.HighPart == originalId.HighPart))
                                 {
-                                    if ((pathInfoArray[iPathInfo].targetInfo.adapterId.LowPart == originalId.LowPart) &&
-                                        (pathInfoArray[iPathInfo].targetInfo.adapterId.HighPart == originalId.HighPart))
-                                    {
-                                        pathInfoArray[iPathInfo].targetInfo.adapterId = modeInfoArrayCurrent[iAdditionalInfoCurrent].adapterId;
-                                        pathInfoArray[iPathInfo].sourceInfo.adapterId = modeInfoArrayCurrent[iAdditionalInfoCurrent].adapterId;
-                                        pathInfoArray[iPathInfo].targetInfo.id = modeInfoArrayCurrent[iAdditionalInfoCurrent].id;
-                                    }
-                                }
-                                for (int iModeInfoFix = 0; iModeInfoFix < modeInfoArray.Length; iModeInfoFix++)
-                                {
-                                    if ((modeInfoArray[iModeInfoFix].adapterId.LowPart == originalId.LowPart) &&
-                                        (modeInfoArray[iModeInfoFix].adapterId.HighPart == originalId.HighPart))
-                                    {
-                                        modeInfoArray[iModeInfoFix].adapterId = modeInfoArrayCurrent[iAdditionalInfoCurrent].adapterId;
-                                    }
-                                }
-                                modeInfoArray[iModeInfo].adapterId = modeInfoArrayCurrent[iAdditionalInfoCurrent].adapterId;
-                                modeInfoArray[iModeInfo].id = modeInfoArrayCurrent[iAdditionalInfoCurrent].id;
-
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                // debug output complete display settings
-                Log.Debug("\nDisplay settings to be loaded: ");
-                Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
-
-                // First let's try without SdcFlags.AllowChanges
-                status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
-                    CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig | CcdWrapper.SdcFlags.NoOptimization | CcdWrapper.SdcFlags.SaveToDatabase);
-
-                if (status != 0)
-                {   // again with SdcFlags.AllowChanges
-                    status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
-                        CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig | CcdWrapper.SdcFlags.NoOptimization | CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.AllowChanges);
-                }
-            }
-
-            if (status != 0)
-            {
-                Log.Error("Failed to set display settings using alternative method, ERROR: {Status}", status);
-                Log.Information("Trying yet another method for adapter ID matching:");
-
-                // Restore original settings and adapter IDs
-                Log.Debug("Converting again to simple arrays for API compatibility");
-                pathInfoArray = pathInfoList.ToArray();
-                modeInfoArray = modeInfoList.ToArray();
-
-                // The next method is identical to the first one but uses a more radical adapter ID assignment
-                for (int iPathInfo = 0; iPathInfo < pathInfoArray.Length; iPathInfo++)
-                {
-                    for (int iPathInfoCurrent = 0; iPathInfoCurrent < pathInfoArrayCurrent.Length; iPathInfoCurrent++)
-                    {
-                        if ((pathInfoArray[iPathInfo].sourceInfo.id == pathInfoArrayCurrent[iPathInfoCurrent].sourceInfo.id) &&
-                            (pathInfoArray[iPathInfo].targetInfo.id == pathInfoArrayCurrent[iPathInfoCurrent].targetInfo.id))
-                        {
-                            Log.Debug("\t!!! Both IDs are a match, getting new Adapter ID and replacing all other IDs !!!");
-                            uint oldId = pathInfoArray[iPathInfo].sourceInfo.adapterId.LowPart;
-                            uint newId = pathInfoArrayCurrent[iPathInfoCurrent].sourceInfo.adapterId.LowPart;
-                            for (int iPathInfoReplace = 0; iPathInfoReplace < pathInfoArray.Length; iPathInfoReplace++)
-                            {
-                                if (pathInfoArray[iPathInfoReplace].sourceInfo.adapterId.LowPart == oldId)
-                                    pathInfoArray[iPathInfoReplace].sourceInfo.adapterId.LowPart = newId;
-                                if (pathInfoArray[iPathInfoReplace].targetInfo.adapterId.LowPart == oldId)
-                                    pathInfoArray[iPathInfoReplace].targetInfo.adapterId.LowPart = newId;
-                            }
-
-                            for (int iModeInfoReplace = 0; iModeInfoReplace < modeInfoArray.Length; iModeInfoReplace++)
-                            {
-                                if (modeInfoArray[iModeInfoReplace].adapterId.LowPart == oldId)
-                                {
-                                    modeInfoArray[iModeInfoReplace].adapterId.LowPart = newId;
+                                    pathInfoArray[iPathInfo].targetInfo.adapterId = modeInfoArrayCurrent[iAdditionalInfoCurrent].adapterId;
+                                    pathInfoArray[iPathInfo].sourceInfo.adapterId = modeInfoArrayCurrent[iAdditionalInfoCurrent].adapterId;
+                                    pathInfoArray[iPathInfo].targetInfo.id = modeInfoArrayCurrent[iAdditionalInfoCurrent].id;
                                 }
                             }
+                            for (int iModeInfoFix = 0; iModeInfoFix < modeInfoArray.Length; iModeInfoFix++)
+                            {
+                                if ((modeInfoArray[iModeInfoFix].adapterId.LowPart == originalId.LowPart) &&
+                                    (modeInfoArray[iModeInfoFix].adapterId.HighPart == originalId.HighPart))
+                                {
+                                    modeInfoArray[iModeInfoFix].adapterId = modeInfoArrayCurrent[iAdditionalInfoCurrent].adapterId;
+                                }
+                            }
+                            modeInfoArray[iModeInfo].adapterId = modeInfoArrayCurrent[iAdditionalInfoCurrent].adapterId;
+                            modeInfoArray[iModeInfo].id = modeInfoArrayCurrent[iAdditionalInfoCurrent].id;
+
                             break;
                         }
-                        Log.Debug("\t---");
                     }
                 }
-
-                // Set loaded display settings
-                Log.Debug("Setting up final display settings to load");
-
-                // debug output complete display settings
-                Log.Debug("\nDisplay settings to be loaded: ");
-                Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
-
-                // First let's try without SdcFlags.AllowChanges
-                status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
-                    CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig | CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization | CcdWrapper.SdcFlags.AllowChanges);
-
-                if (status != 0)
-                {   // again with SdcFlags.AllowChanges
-                    status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
-                        CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig | CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization | CcdWrapper.SdcFlags.AllowChanges);
-                }
             }
+
+            // debug output complete display settings
+            Log.Debug("\nDisplay settings to be loaded: ");
+            Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
+
+            // First let's try without SdcFlags.AllowChanges
+            status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
+                CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig | CcdWrapper.SdcFlags.NoOptimization | CcdWrapper.SdcFlags.SaveToDatabase);
 
             if (status != 0)
-            {
-                Log.Error("Failed to set display settings using the other alternative method, ERROR: {Status}", status);
-                return false;
+            {   // again with SdcFlags.AllowChanges
+                status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
+                    CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig | CcdWrapper.SdcFlags.NoOptimization | CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.AllowChanges);
             }
+        }
+
+        if (status == 0)
+        {
+            return true;
+        }
+
+        Log.Error("Failed to set display settings using alternative method, ERROR: {Status}", status);
+        Log.Information("Trying yet another method for adapter ID matching:");
+
+        // Restore original settings and adapter IDs
+        Log.Debug("Converting again to simple arrays for API compatibility");
+        pathInfoArray = pathInfoList.ToArray();
+        modeInfoArray = modeInfoList.ToArray();
+
+        // The next method is identical to the first one but uses a more radical adapter ID assignment
+        for (int iPathInfo = 0; iPathInfo < pathInfoArray.Length; iPathInfo++)
+        {
+            for (int iPathInfoCurrent = 0; iPathInfoCurrent < pathInfoArrayCurrent.Length; iPathInfoCurrent++)
+            {
+                if ((pathInfoArray[iPathInfo].sourceInfo.id ==
+                        pathInfoArrayCurrent[iPathInfoCurrent].sourceInfo.id) &&
+                    (pathInfoArray[iPathInfo].targetInfo.id ==
+                        pathInfoArrayCurrent[iPathInfoCurrent].targetInfo.id))
+                {
+                    Log.Debug("\t!!! Both IDs are a match, getting new Adapter ID and replacing all other IDs !!!");
+                    uint oldId = pathInfoArray[iPathInfo].sourceInfo.adapterId.LowPart;
+                    uint newId = pathInfoArrayCurrent[iPathInfoCurrent].sourceInfo.adapterId.LowPart;
+                    for (int iPathInfoReplace = 0; iPathInfoReplace < pathInfoArray.Length; iPathInfoReplace++)
+                    {
+                        if (pathInfoArray[iPathInfoReplace].sourceInfo.adapterId.LowPart == oldId)
+                            pathInfoArray[iPathInfoReplace].sourceInfo.adapterId.LowPart = newId;
+                        if (pathInfoArray[iPathInfoReplace].targetInfo.adapterId.LowPart == oldId)
+                            pathInfoArray[iPathInfoReplace].targetInfo.adapterId.LowPart = newId;
+                    }
+
+                    for (int iModeInfoReplace = 0; iModeInfoReplace < modeInfoArray.Length; iModeInfoReplace++)
+                    {
+                        if (modeInfoArray[iModeInfoReplace].adapterId.LowPart == oldId)
+                        {
+                            modeInfoArray[iModeInfoReplace].adapterId.LowPart = newId;
+                        }
+                    }
+
+                    break;
+                }
+
+                Log.Debug("\t---");
+            }
+        }
+
+        // Set loaded display settings
+        Log.Debug("Setting up final display settings to load");
+
+        // debug output complete display settings
+        Log.Debug("\nDisplay settings to be loaded: ");
+        Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
+
+        // First let's try without SdcFlags.AllowChanges
+        status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements,
+            modeInfoArray,
+            CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig |
+            CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization |
+            CcdWrapper.SdcFlags.AllowChanges);
+
+        if (status != 0)
+        {
+            // again with SdcFlags.AllowChanges
+            status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements,
+                modeInfoArray,
+                CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig |
+                CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization |
+                CcdWrapper.SdcFlags.AllowChanges);
+        }
+
+        if (status != 0)
+        {
+            Log.Error("Failed to set display settings using the other alternative method, ERROR: {Status}", status);
+            return false;
         }
 
         return true;
@@ -468,6 +435,65 @@ public static class DisplaySettings
 
         xmlReader.Close();
         Log.Debug("Parsing of XML file successful");
+    }
+
+    /// <summary>
+    /// For some reason the adapterID parameter changes upon system restart, all other parameters however, especially the ID remain constant.
+    /// We check the loaded settings against the current settings replacing the adapterID with the other parameters
+    /// </summary>
+    private static void MatchAdapterIds(
+        CcdWrapper.DisplayConfigPathInfo[] xmlPathInfos,
+        CcdWrapper.DisplayConfigPathInfo[] currentPathInfos,
+        CcdWrapper.DisplayConfigModeInfo[] modeInfos)
+    {
+        Log.Debug("Matching of adapter IDs for pathInfo");
+        for (var i = 0; i < xmlPathInfos.Length; i++)
+        {
+            var matches = currentPathInfos
+                .Where(current => current.sourceInfo.id == xmlPathInfos[i].sourceInfo.id &&
+                    current.targetInfo.id == xmlPathInfos[i].targetInfo.id)
+                .ToList();
+            if (matches.Count == 0)
+            {
+                continue;
+            }
+
+            var current = matches.Single();
+            xmlPathInfos[i].sourceInfo.adapterId.LowPart = current.sourceInfo.adapterId.LowPart;
+            xmlPathInfos[i].targetInfo.adapterId.LowPart = current.targetInfo.adapterId.LowPart;
+        }
+
+        // Same again for modeInfo, however we get the required adapterId information from the pathInfoArray
+        Log.Debug("Matching of adapter IDs for modeInfo");
+        for (var i = 0; i < modeInfos.Length; i++)
+        {
+            if (modeInfos[i].infoType != CcdWrapper.DisplayConfigModeInfoType.Target)
+            {
+                continue;
+            }
+
+            var pathInfos = xmlPathInfos.Where(pathInfo => pathInfo.targetInfo.id == modeInfos[i].id).ToList();
+            if (pathInfos.Count == 0)
+            {
+                continue;
+            }
+            var pathInfo = pathInfos.Single();
+            modeInfos[i].adapterId.LowPart = pathInfo.targetInfo.adapterId.LowPart;
+
+            for (var j = 0; j < modeInfos.Length; j++)
+            {
+                if (modeInfos[j].id == pathInfo.sourceInfo.id &&
+                    modeInfos[j].adapterId.LowPart == modeInfos[i].adapterId.LowPart &&
+                    modeInfos[j].infoType == CcdWrapper.DisplayConfigModeInfoType.Source)
+                {
+                    Log.Debug("\t\t!!! IDs are a match, taking adapter id from pathInfo !!!");
+                    modeInfos[j].adapterId.LowPart = pathInfo.sourceInfo.adapterId.LowPart;
+                    break;
+                }
+            }
+        }
+
+        Log.Debug("Done matching of adapter IDs");
     }
 
     public static string PrintDisplaySettings(CcdWrapper.DisplayConfigPathInfo[] pathInfoArray, CcdWrapper.DisplayConfigModeInfo[] modeInfoArray)
