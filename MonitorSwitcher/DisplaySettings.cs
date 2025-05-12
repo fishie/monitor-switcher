@@ -193,34 +193,35 @@ public static class DisplaySettings
         Log.Debug("Display settings to be loaded: ");
         Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
 
-        uint numPathArrayElements = (uint)pathInfoArray.Length;
-        uint numModeInfoArrayElements = (uint)modeInfoArray.Length;
-
         // First let's try without SdcFlags.AllowChanges
-        long status = CcdWrapper.SetDisplayConfig(
-            numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
-            CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig |
-            CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization);
-
-        if (status != 0)
-        {// try again with SdcFlags.AllowChanges
-            Log.Error("Failed to set display settings without SdcFlags.AllowChanges, ERROR: {Status}", status);
-            Log.Information("Trying again with additional SdcFlags.AllowChanges flag");
-            status = CcdWrapper.SetDisplayConfig(
-                numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
-                CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig |
-                CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization |
-                CcdWrapper.SdcFlags.AllowChanges);
-        }
-
-        if (status == 0)
+        if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
+                | CcdWrapper.SdcFlags.Apply
+                | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
+                | CcdWrapper.SdcFlags.SaveToDatabase
+                | CcdWrapper.SdcFlags.NoOptimization
+            ))
         {
             return true;
         }
 
-        Log.Error("Failed to set display settings using default method, ERROR: {Status}", status);
+        // try again with SdcFlags.AllowChanges
+        Log.Error("Failed to set display settings without SdcFlags.AllowChanges");
+        Log.Information("Trying again with additional SdcFlags.AllowChanges flag");
 
-        if ((additionalInfoCurrent.Length > 0) && (additionalInfoList.Count > 0)) // only if present, e.g. new profile
+        if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
+                | CcdWrapper.SdcFlags.Apply
+                | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
+                | CcdWrapper.SdcFlags.SaveToDatabase
+                | CcdWrapper.SdcFlags.NoOptimization
+                | CcdWrapper.SdcFlags.AllowChanges
+            ))
+        {
+            return true;
+        }
+
+        Log.Error("Failed to set display settings using default method");
+
+        if (additionalInfoCurrent.Length > 0 && additionalInfoList.Count > 0) // only if present, e.g. new profile
         {
             Log.Information("Trying alternative method");
             // Restore original settings and adapter IDs
@@ -234,7 +235,7 @@ public static class DisplaySettings
             {
                 for (int iAdditionalInfoCurrent = 0; iAdditionalInfoCurrent < additionalInfoCurrent.Length; iAdditionalInfoCurrent++)
                 {
-                    if ((additionalInfoCurrent[iAdditionalInfoCurrent].monitorFriendlyDevice != null) && (additionalInfoList[iModeInfo].monitorFriendlyDevice != null))
+                    if (additionalInfoCurrent[iAdditionalInfoCurrent].monitorFriendlyDevice != null && additionalInfoList[iModeInfo].monitorFriendlyDevice != null)
                     {
                         if (additionalInfoCurrent[iAdditionalInfoCurrent].monitorFriendlyDevice == additionalInfoList[iModeInfo].monitorFriendlyDevice)
                         {
@@ -242,8 +243,8 @@ public static class DisplaySettings
                             // now also find all other matching pathInfo modeInfos with that ID and change it
                             for (int iPathInfo = 0; iPathInfo < pathInfoArray.Length; iPathInfo++)
                             {
-                                if ((pathInfoArray[iPathInfo].targetInfo.adapterId.LowPart == originalId.LowPart) &&
-                                    (pathInfoArray[iPathInfo].targetInfo.adapterId.HighPart == originalId.HighPart))
+                                if (pathInfoArray[iPathInfo].targetInfo.adapterId.LowPart == originalId.LowPart &&
+                                    pathInfoArray[iPathInfo].targetInfo.adapterId.HighPart == originalId.HighPart)
                                 {
                                     pathInfoArray[iPathInfo].targetInfo.adapterId = modeInfoArrayCurrent[iAdditionalInfoCurrent].adapterId;
                                     pathInfoArray[iPathInfo].sourceInfo.adapterId = modeInfoArrayCurrent[iAdditionalInfoCurrent].adapterId;
@@ -252,8 +253,8 @@ public static class DisplaySettings
                             }
                             for (int iModeInfoFix = 0; iModeInfoFix < modeInfoArray.Length; iModeInfoFix++)
                             {
-                                if ((modeInfoArray[iModeInfoFix].adapterId.LowPart == originalId.LowPart) &&
-                                    (modeInfoArray[iModeInfoFix].adapterId.HighPart == originalId.HighPart))
+                                if (modeInfoArray[iModeInfoFix].adapterId.LowPart == originalId.LowPart &&
+                                    modeInfoArray[iModeInfoFix].adapterId.HighPart == originalId.HighPart)
                                 {
                                     modeInfoArray[iModeInfoFix].adapterId = modeInfoArrayCurrent[iAdditionalInfoCurrent].adapterId;
                                 }
@@ -272,22 +273,31 @@ public static class DisplaySettings
             Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
 
             // First let's try without SdcFlags.AllowChanges
-            status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
-                CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig | CcdWrapper.SdcFlags.NoOptimization | CcdWrapper.SdcFlags.SaveToDatabase);
-
-            if (status != 0)
-            {   // again with SdcFlags.AllowChanges
-                status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
-                    CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig | CcdWrapper.SdcFlags.NoOptimization | CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.AllowChanges);
+            if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
+                    | CcdWrapper.SdcFlags.Apply
+                    | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
+                    | CcdWrapper.SdcFlags.NoOptimization
+                    | CcdWrapper.SdcFlags.SaveToDatabase
+                ))
+            {
+                return true;
             }
+
+            // again with SdcFlags.AllowChanges
+            if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
+                    | CcdWrapper.SdcFlags.Apply
+                    | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
+                    | CcdWrapper.SdcFlags.NoOptimization
+                    | CcdWrapper.SdcFlags.SaveToDatabase
+                    | CcdWrapper.SdcFlags.AllowChanges
+                ))
+            {
+                return true;
+            }
+
+            Log.Error("Failed to set display settings using alternative method");
         }
 
-        if (status == 0)
-        {
-            return true;
-        }
-
-        Log.Error("Failed to set display settings using alternative method, ERROR: {Status}", status);
         Log.Information("Trying yet another method for adapter ID matching:");
 
         // Restore original settings and adapter IDs
@@ -300,10 +310,10 @@ public static class DisplaySettings
         {
             for (int iPathInfoCurrent = 0; iPathInfoCurrent < pathInfoArrayCurrent.Length; iPathInfoCurrent++)
             {
-                if ((pathInfoArray[iPathInfo].sourceInfo.id ==
-                        pathInfoArrayCurrent[iPathInfoCurrent].sourceInfo.id) &&
-                    (pathInfoArray[iPathInfo].targetInfo.id ==
-                        pathInfoArrayCurrent[iPathInfoCurrent].targetInfo.id))
+                if (pathInfoArray[iPathInfo].sourceInfo.id ==
+                    pathInfoArrayCurrent[iPathInfoCurrent].sourceInfo.id &&
+                    pathInfoArray[iPathInfo].targetInfo.id ==
+                    pathInfoArrayCurrent[iPathInfoCurrent].targetInfo.id)
                 {
                     Log.Debug("\t!!! Both IDs are a match, getting new Adapter ID and replacing all other IDs !!!");
                     uint oldId = pathInfoArray[iPathInfo].sourceInfo.adapterId.LowPart;
@@ -339,29 +349,30 @@ public static class DisplaySettings
         Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
 
         // First let's try without SdcFlags.AllowChanges
-        status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements,
-            modeInfoArray,
-            CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig |
-            CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization |
-            CcdWrapper.SdcFlags.AllowChanges);
-
-        if (status != 0)
+        if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
+                | CcdWrapper.SdcFlags.Apply
+                | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
+                | CcdWrapper.SdcFlags.NoOptimization
+                | CcdWrapper.SdcFlags.SaveToDatabase
+            ))
         {
-            // again with SdcFlags.AllowChanges
-            status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements,
-                modeInfoArray,
-                CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig |
-                CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization |
-                CcdWrapper.SdcFlags.AllowChanges);
+            return true;
         }
 
-        if (status != 0)
+        // again with SdcFlags.AllowChanges
+        if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
+                | CcdWrapper.SdcFlags.Apply
+                | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
+                | CcdWrapper.SdcFlags.NoOptimization
+                | CcdWrapper.SdcFlags.SaveToDatabase
+                | CcdWrapper.SdcFlags.AllowChanges
+            ))
         {
-            Log.Error("Failed to set display settings using the other alternative method, ERROR: {Status}", status);
-            return false;
+            return true;
         }
 
-        return true;
+        Log.Error("Failed to set display settings using the other alternative method");
+        return false;
     }
 
     private static void ParseXmlFile(string filename,
@@ -496,6 +507,23 @@ public static class DisplaySettings
         }
 
         Log.Debug("Done matching of adapter IDs");
+    }
+
+    private static bool SetDisplayConfig(
+        CcdWrapper.DisplayConfigPathInfo[] pathInfos,
+        CcdWrapper.DisplayConfigModeInfo[] modeInfos,
+        CcdWrapper.SdcFlags flags)
+    {
+        var status = CcdWrapper.SetDisplayConfig((uint)pathInfos.Length, pathInfos,
+            (uint)modeInfos.Length, modeInfos, flags);
+
+        if (status == 0)
+        {
+            return true;
+        }
+
+        Log.Error("Failed to set display config, status={Status}", status);
+        return false;
     }
 
     public static string PrintDisplaySettings(CcdWrapper.DisplayConfigPathInfo[] pathInfoArray, CcdWrapper.DisplayConfigModeInfo[] modeInfoArray)
