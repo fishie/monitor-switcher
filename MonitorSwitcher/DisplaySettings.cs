@@ -174,7 +174,6 @@ public static class DisplaySettings
         var pathInfoArray = pathInfoList.ToArray();
         var modeInfoArray = modeInfoList.ToArray();
 
-        // Get current display settings
         Log.Debug("Getting current display settings");
         if (!GetDisplaySettings(out var pathInfoArrayCurrent, out var modeInfoArrayCurrent, out var additionalInfoCurrent, false))
         {
@@ -207,8 +206,11 @@ public static class DisplaySettings
         {// try again with SdcFlags.AllowChanges
             Log.Error("Failed to set display settings without SdcFlags.AllowChanges, ERROR: {Status}", status);
             Log.Information("Trying again with additional SdcFlags.AllowChanges flag");
-            status = CcdWrapper.SetDisplayConfig(numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
-                CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig | CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization | CcdWrapper.SdcFlags.AllowChanges);
+            status = CcdWrapper.SetDisplayConfig(
+                numPathArrayElements, pathInfoArray, numModeInfoArrayElements, modeInfoArray,
+                CcdWrapper.SdcFlags.Apply | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig |
+                CcdWrapper.SdcFlags.SaveToDatabase | CcdWrapper.SdcFlags.NoOptimization |
+                CcdWrapper.SdcFlags.AllowChanges);
         }
 
         if (status == 0)
