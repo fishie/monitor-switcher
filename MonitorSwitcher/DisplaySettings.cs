@@ -193,13 +193,14 @@ public static class DisplaySettings
         Log.Debug("Display settings to be loaded: ");
         Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
 
+        const CcdWrapper.SdcFlags withoutAllowChanges = CcdWrapper.SdcFlags.Apply |
+            CcdWrapper.SdcFlags.UseSuppliedDisplayConfig |
+            CcdWrapper.SdcFlags.NoOptimization |
+            CcdWrapper.SdcFlags.SaveToDatabase;
+        const CcdWrapper.SdcFlags withAllowChanges = withoutAllowChanges | CcdWrapper.SdcFlags.AllowChanges;
+
         // First let's try without SdcFlags.AllowChanges
-        if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
-                | CcdWrapper.SdcFlags.Apply
-                | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
-                | CcdWrapper.SdcFlags.SaveToDatabase
-                | CcdWrapper.SdcFlags.NoOptimization
-            ))
+        if (SetDisplayConfig(pathInfoArray, modeInfoArray, withoutAllowChanges))
         {
             return true;
         }
@@ -208,13 +209,7 @@ public static class DisplaySettings
         Log.Error("Failed to set display settings without SdcFlags.AllowChanges");
         Log.Information("Trying again with additional SdcFlags.AllowChanges flag");
 
-        if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
-                | CcdWrapper.SdcFlags.Apply
-                | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
-                | CcdWrapper.SdcFlags.SaveToDatabase
-                | CcdWrapper.SdcFlags.NoOptimization
-                | CcdWrapper.SdcFlags.AllowChanges
-            ))
+        if (SetDisplayConfig(pathInfoArray, modeInfoArray, withAllowChanges))
         {
             return true;
         }
@@ -273,24 +268,13 @@ public static class DisplaySettings
             Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
 
             // First let's try without SdcFlags.AllowChanges
-            if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
-                    | CcdWrapper.SdcFlags.Apply
-                    | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
-                    | CcdWrapper.SdcFlags.NoOptimization
-                    | CcdWrapper.SdcFlags.SaveToDatabase
-                ))
+            if (SetDisplayConfig(pathInfoArray, modeInfoArray, withoutAllowChanges))
             {
                 return true;
             }
 
             // again with SdcFlags.AllowChanges
-            if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
-                    | CcdWrapper.SdcFlags.Apply
-                    | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
-                    | CcdWrapper.SdcFlags.NoOptimization
-                    | CcdWrapper.SdcFlags.SaveToDatabase
-                    | CcdWrapper.SdcFlags.AllowChanges
-                ))
+            if (SetDisplayConfig(pathInfoArray, modeInfoArray, withAllowChanges))
             {
                 return true;
             }
@@ -349,24 +333,13 @@ public static class DisplaySettings
         Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
 
         // First let's try without SdcFlags.AllowChanges
-        if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
-                | CcdWrapper.SdcFlags.Apply
-                | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
-                | CcdWrapper.SdcFlags.NoOptimization
-                | CcdWrapper.SdcFlags.SaveToDatabase
-            ))
+        if (SetDisplayConfig(pathInfoArray, modeInfoArray, withoutAllowChanges))
         {
             return true;
         }
 
         // again with SdcFlags.AllowChanges
-        if (SetDisplayConfig(pathInfoArray, modeInfoArray, 0
-                | CcdWrapper.SdcFlags.Apply
-                | CcdWrapper.SdcFlags.UseSuppliedDisplayConfig
-                | CcdWrapper.SdcFlags.NoOptimization
-                | CcdWrapper.SdcFlags.SaveToDatabase
-                | CcdWrapper.SdcFlags.AllowChanges
-            ))
+        if (SetDisplayConfig(pathInfoArray, modeInfoArray, withAllowChanges))
         {
             return true;
         }
