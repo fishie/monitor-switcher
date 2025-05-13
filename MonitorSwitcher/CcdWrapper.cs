@@ -1,7 +1,9 @@
 ﻿using System.Runtime.InteropServices;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
 using System.Text;
+using Serilog;
 
 namespace MonitorSwitcher;
 
@@ -308,8 +310,24 @@ public static class CcdWrapper
 
     #endregion
 
+    public static bool SetDisplayConfig(
+        DisplayConfigPathInfo[] pathInfos,
+        DisplayConfigModeInfo[] modeInfos,
+        SdcFlags flags)
+    {
+        var status = SetDisplayConfig((uint)pathInfos.Length, pathInfos, (uint)modeInfos.Length, modeInfos, flags);
+
+        if (status == 0)
+        {
+            return true;
+        }
+
+        Log.Error("Failed to set display config, status={Status}", status);
+        return false;
+    }
+
     [DllImport("User32.dll")]
-    public static extern int SetDisplayConfig(
+    private static extern int SetDisplayConfig(
         uint numPathArrayElements,
         [In] DisplayConfigPathInfo[] pathArray,
         uint numModeInfoArrayElements,
@@ -317,8 +335,39 @@ public static class CcdWrapper
         SdcFlags flags
     );
 
+    public static bool QueryDisplayConfig(QueryDisplayFlags queryDisplayFlags,
+        [NotNullWhen(true)] out DisplayConfigPathInfo[]? pathInfos,
+        [NotNullWhen(true)] out DisplayConfigModeInfo[]? modeInfos)
+    {
+        var status = GetDisplayConfigBufferSizes(queryDisplayFlags, out var pathInfoCount, out var modeInfoCount);
+
+        if (status != 0)
+        {
+            Log.Error($"{nameof(GetDisplayConfigBufferSizes)} failed, status={{Status}}", status);
+            pathInfos = null;
+            modeInfos = null;
+            return false;
+        }
+
+        pathInfos = new DisplayConfigPathInfo[pathInfoCount];
+        modeInfos = new DisplayConfigModeInfo[modeInfoCount];
+
+        status = QueryDisplayConfig(queryDisplayFlags, ref pathInfoCount, pathInfos,
+            ref modeInfoCount, modeInfos, IntPtr.Zero);
+
+        if (status != 0)
+        {
+            Log.Error($"{nameof(QueryDisplayConfig)} failed, status={{Status}}", status);
+            pathInfos = null;
+            modeInfos = null;
+            return false;
+        }
+
+        return true;
+    }
+
     [DllImport("User32.dll")]
-    public static extern int QueryDisplayConfig(
+    private static extern int QueryDisplayConfig(
         QueryDisplayFlags flags,
         ref uint numPathArrayElements,
         [Out] DisplayConfigPathInfo[] pathInfoArray,
@@ -328,7 +377,7 @@ public static class CcdWrapper
     );
 
     [DllImport("User32.dll")]
-    public static extern int GetDisplayConfigBufferSizes(QueryDisplayFlags flags,
+    private static extern int GetDisplayConfigBufferSizes(QueryDisplayFlags flags,
         out uint numPathArrayElements, out uint numModeInfoArrayElements);
 
     private enum DisplayConfigDeviceInfoType : uint

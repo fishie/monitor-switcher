@@ -15,40 +15,19 @@ public static class DisplaySettings
     {
         // query active paths from the current computer.
         Log.Debug("Getting display settings");
-        CcdWrapper.QueryDisplayFlags queryFlags = CcdWrapper.QueryDisplayFlags.AllPaths;
-        if (activeOnly)
-        {
-            queryFlags = CcdWrapper.QueryDisplayFlags.OnlyActivePaths;
-        }
-
-        Log.Debug("Getting buffer size");
-        var status = CcdWrapper.GetDisplayConfigBufferSizes(queryFlags,
-            out var numPathArrayElements, out var numModeInfoArrayElements);
-        if (status != 0)
-        {
-            Log.Debug("Getting Buffer Size Failed");
-            pathInfoArray = null;
-            modeInfoArray = null;
-            additionalInfo = null;
-            return false;
-        }
-
-        pathInfoArray = new CcdWrapper.DisplayConfigPathInfo[numPathArrayElements];
-        modeInfoArray = new CcdWrapper.DisplayConfigModeInfo[numModeInfoArrayElements];
-        additionalInfo = new CcdWrapper.MonitorAdditionalInfo[numModeInfoArrayElements];
+        var queryFlags = activeOnly
+            ? CcdWrapper.QueryDisplayFlags.OnlyActivePaths
+            : CcdWrapper.QueryDisplayFlags.AllPaths;
 
         Log.Debug("Querying display config");
-        status = CcdWrapper.QueryDisplayConfig(queryFlags, ref numPathArrayElements, pathInfoArray,
-            ref numModeInfoArrayElements, modeInfoArray, IntPtr.Zero);
-
-        if (status != 0)
+        if (!CcdWrapper.QueryDisplayConfig(queryFlags, out pathInfoArray, out modeInfoArray))
         {
             Log.Debug("Querying display config failed");
-            pathInfoArray = null;
-            modeInfoArray = null;
             additionalInfo = null;
             return false;
         }
+
+        additionalInfo = new CcdWrapper.MonitorAdditionalInfo[modeInfoArray.Length];
 
         // cleanup of modeInfo bad elements
         var validModeInfos = modeInfoArray
@@ -193,14 +172,14 @@ public static class DisplaySettings
         Log.Debug("Display settings to be loaded: ");
         Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
 
-        const CcdWrapper.SdcFlags withoutAllowChanges = CcdWrapper.SdcFlags.Apply |
+        const CcdWrapper.SdcFlags noAllowChanges = CcdWrapper.SdcFlags.Apply |
             CcdWrapper.SdcFlags.UseSuppliedDisplayConfig |
             CcdWrapper.SdcFlags.NoOptimization |
             CcdWrapper.SdcFlags.SaveToDatabase;
-        const CcdWrapper.SdcFlags withAllowChanges = withoutAllowChanges | CcdWrapper.SdcFlags.AllowChanges;
+        const CcdWrapper.SdcFlags withAllowChanges = noAllowChanges | CcdWrapper.SdcFlags.AllowChanges;
 
         // First let's try without SdcFlags.AllowChanges
-        if (SetDisplayConfig(pathInfoArray, modeInfoArray, withoutAllowChanges))
+        if (CcdWrapper.SetDisplayConfig(pathInfoArray, modeInfoArray, noAllowChanges))
         {
             return true;
         }
@@ -209,7 +188,7 @@ public static class DisplaySettings
         Log.Error("Failed to set display settings without SdcFlags.AllowChanges");
         Log.Information("Trying again with additional SdcFlags.AllowChanges flag");
 
-        if (SetDisplayConfig(pathInfoArray, modeInfoArray, withAllowChanges))
+        if (CcdWrapper.SetDisplayConfig(pathInfoArray, modeInfoArray, withAllowChanges))
         {
             return true;
         }
@@ -268,13 +247,13 @@ public static class DisplaySettings
             Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
 
             // First let's try without SdcFlags.AllowChanges
-            if (SetDisplayConfig(pathInfoArray, modeInfoArray, withoutAllowChanges))
+            if (CcdWrapper.SetDisplayConfig(pathInfoArray, modeInfoArray, noAllowChanges))
             {
                 return true;
             }
 
             // again with SdcFlags.AllowChanges
-            if (SetDisplayConfig(pathInfoArray, modeInfoArray, withAllowChanges))
+            if (CcdWrapper.SetDisplayConfig(pathInfoArray, modeInfoArray, withAllowChanges))
             {
                 return true;
             }
@@ -333,13 +312,13 @@ public static class DisplaySettings
         Log.Debug(PrintDisplaySettings(pathInfoArray, modeInfoArray));
 
         // First let's try without SdcFlags.AllowChanges
-        if (SetDisplayConfig(pathInfoArray, modeInfoArray, withoutAllowChanges))
+        if (CcdWrapper.SetDisplayConfig(pathInfoArray, modeInfoArray, noAllowChanges))
         {
             return true;
         }
 
         // again with SdcFlags.AllowChanges
-        if (SetDisplayConfig(pathInfoArray, modeInfoArray, withAllowChanges))
+        if (CcdWrapper.SetDisplayConfig(pathInfoArray, modeInfoArray, withAllowChanges))
         {
             return true;
         }
@@ -480,23 +459,6 @@ public static class DisplaySettings
         }
 
         Log.Debug("Done matching of adapter IDs");
-    }
-
-    private static bool SetDisplayConfig(
-        CcdWrapper.DisplayConfigPathInfo[] pathInfos,
-        CcdWrapper.DisplayConfigModeInfo[] modeInfos,
-        CcdWrapper.SdcFlags flags)
-    {
-        var status = CcdWrapper.SetDisplayConfig((uint)pathInfos.Length, pathInfos,
-            (uint)modeInfos.Length, modeInfos, flags);
-
-        if (status == 0)
-        {
-            return true;
-        }
-
-        Log.Error("Failed to set display config, status={Status}", status);
-        return false;
     }
 
     public static string PrintDisplaySettings(CcdWrapper.DisplayConfigPathInfo[] pathInfoArray, CcdWrapper.DisplayConfigModeInfo[] modeInfoArray)
